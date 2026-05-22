@@ -1,0 +1,446 @@
+# Saku — Personal Finance Tracker
+# Flutter + Clean Architecture + Local Storage (Hive)
+# Minimalist Black & White iOS-style Design
+
+---
+
+## Project Overview
+
+- App name: **Saku**
+- Platform: Flutter (iOS & Android)
+- Architecture: Clean Architecture
+- Storage: Hive (local only, no backend)
+- State Management: flutter_riverpod
+- Navigation: go_router
+- Design: Minimalist Black & White, iOS-style
+- App Icon assets: ROOT_PROJECT/assets/app_icons
+---
+
+## Strict Coding Rules
+
+- Always follow Clean Architecture: data → domain → presentation
+- Never call Hive or any datasource directly from presentation layer
+- Always go through use cases from providers/notifiers
+- Never use colors other than: #000000, #FFFFFF, #F5F5F5, #1C1C1E, #8E8E93, #E0E0E0, #2C2C2E
+- All monetary amounts stored as `int` in IDR (no decimals)
+- Always use `formatRupiah()` from `core/utils/currency_formatter.dart` for display
+- Always use `freezed` for domain entities
+- Always use `const` constructors wherever possible
+- Always handle loading and error states in UI
+- Never hardcode strings — use constants or l10n
+- New feature checklist: entity → repository (abstract) → repository (impl) → datasource → usecase → provider → UI
+
+---
+
+## Folder Structure
+
+```
+lib/
+├── main.dart
+├── app/
+│   ├── app.dart                        # MaterialApp + theme + router setup
+│   ├── router.dart                     # go_router configuration
+│   └── theme.dart                      # ThemeData light & dark
+│
+├── core/
+│   ├── utils/
+│   │   ├── currency_formatter.dart     # formatRupiah(int amount) → "Rp 1.250.000"
+│   │   └── date_helper.dart            # date formatting helpers
+│   ├── constants/
+│   │   └── categories.dart             # kCategories list
+│   └── errors/
+│       └── failure.dart                # Failure sealed class
+│
+└── features/
+    └── transaction/
+        ├── data/
+        │   ├── datasources/
+        │   │   └── transaction_local_datasource.dart   # Hive CRUD
+        │   ├── models/
+        │   │   └── transaction_model.dart              # HiveObject
+        │   └── repositories/
+        │       └── transaction_repository_impl.dart
+        │
+        ├── domain/
+        │   ├── entities/
+        │   │   └── transaction.dart                    # Freezed entity
+        │   ├── repositories/
+        │   │   └── transaction_repository.dart         # Abstract class
+        │   └── usecases/
+        │       ├── add_transaction.dart
+        │       ├── delete_transaction.dart
+        │       ├── get_all_transactions.dart
+        │       ├── get_transactions_by_month.dart
+        │       └── get_summary.dart
+        │
+        └── presentation/
+            ├── providers/
+            │   └── transaction_provider.dart           # Riverpod providers
+            ├── pages/
+            │   ├── home_page.dart
+            │   ├── add_transaction_page.dart
+            │   ├── history_page.dart
+            │   └── report_page.dart
+            └── widgets/
+                ├── balance_card.dart
+                ├── transaction_item.dart
+                ├── category_picker.dart
+                ├── amount_input.dart
+                ├── month_selector.dart
+                └── monthly_chart.dart
+```
+
+---
+
+## Data Models
+
+### Domain Entity — `transaction.dart`
+```dart
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'transaction.freezed.dart';
+
+enum TransactionType { income, expense }
+
+@freezed
+class Transaction with _$Transaction {
+  const factory Transaction({
+    required String id,
+    required TransactionType type,
+    required int amount,
+    required String categoryId,
+    required DateTime date,
+    String? notes,
+    required DateTime createdAt,
+  }) = _Transaction;
+}
+```
+
+### Hive Model — `transaction_model.dart`
+```dart
+import 'package:hive/hive.dart';
+part 'transaction_model.g.dart';
+
+@HiveType(typeId: 0)
+class TransactionModel extends HiveObject {
+  @HiveField(0) late String id;
+  @HiveField(1) late String type;       // 'income' | 'expense'
+  @HiveField(2) late int amount;
+  @HiveField(3) late String categoryId;
+  @HiveField(4) late DateTime date;
+  @HiveField(5) String? notes;
+  @HiveField(6) late DateTime createdAt;
+
+  Transaction toEntity() => Transaction(
+    id: id,
+    type: type == 'income' ? TransactionType.income : TransactionType.expense,
+    amount: amount,
+    categoryId: categoryId,
+    date: date,
+    notes: notes,
+    createdAt: createdAt,
+  );
+
+  static TransactionModel fromEntity(Transaction tx) => TransactionModel()
+    ..id = tx.id
+    ..type = tx.type.name
+    ..amount = tx.amount
+    ..categoryId = tx.categoryId
+    ..date = tx.date
+    ..notes = tx.notes
+    ..createdAt = tx.createdAt;
+}
+```
+
+---
+
+## Abstract Repository
+```dart
+abstract class TransactionRepository {
+  Future<List<Transaction>> getAllTransactions();
+  Future<List<Transaction>> getTransactionsByMonth(int year, int month);
+  Future<void> addTransaction(Transaction transaction);
+  Future<void> deleteTransaction(String id);
+  Future<Map<String, dynamic>> getSummary(int year, int month);
+  // getSummary returns: { totalIncome, totalExpense, balance, byCategory }
+}
+```
+
+---
+
+## Use Case Pattern
+```dart
+// Every use case follows this exact pattern
+class AddTransaction {
+  final TransactionRepository repository;
+  AddTransaction(this.repository);
+
+  Future<void> call(Transaction transaction) =>
+      repository.addTransaction(transaction);
+}
+```
+
+---
+
+## Categories Constant
+```dart
+class TransactionCategory {
+  final String id;
+  final String label;
+  final String icon;
+  const TransactionCategory({
+    required this.id,
+    required this.label,
+    required this.icon,
+  });
+}
+
+const List<TransactionCategory> kCategories = [
+  TransactionCategory(id: 'food',          label: 'Food & Drinks',   icon: '🍽️'),
+  TransactionCategory(id: 'transport',     label: 'Transportation',  icon: '🚗'),
+  TransactionCategory(id: 'shopping',      label: 'Shopping',        icon: '🛍️'),
+  TransactionCategory(id: 'health',        label: 'Health',          icon: '🏥'),
+  TransactionCategory(id: 'entertainment', label: 'Entertainment',   icon: '🎮'),
+  TransactionCategory(id: 'education',     label: 'Education',       icon: '📚'),
+  TransactionCategory(id: 'household',     label: 'Household',       icon: '🏠'),
+  TransactionCategory(id: 'salary',        label: 'Salary / Income', icon: '💼'),
+  TransactionCategory(id: 'other',         label: 'Others',          icon: '📦'),
+];
+```
+
+---
+
+## Currency Formatter
+```dart
+String formatRupiah(int amount) {
+  final formatted = amount.toString().replaceAllMapped(
+    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+    (m) => '${m[1]}.',
+  );
+  return 'Rp $formatted';
+}
+// formatRupiah(1250000) → "Rp 1.250.000"
+// formatRupiah(3251606) → "Rp 3.251.606"
+```
+
+---
+
+## Theme Configuration
+```dart
+// Light Theme
+ThemeData lightTheme = ThemeData(
+  brightness: Brightness.light,
+  scaffoldBackgroundColor: Colors.white,
+  colorScheme: const ColorScheme.light(
+    primary: Colors.black,
+    secondary: Colors.black,
+    surface: Color(0xFFF5F5F5),
+    onPrimary: Colors.white,
+    onSurface: Colors.black,
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Colors.white,
+    foregroundColor: Colors.black,
+    elevation: 0,
+    scrolledUnderElevation: 0,
+    titleTextStyle: TextStyle(
+      fontSize: 34,
+      fontWeight: FontWeight.bold,
+      color: Colors.black,
+    ),
+  ),
+  cardTheme: CardTheme(
+    color: const Color(0xFFF5F5F5),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    elevation: 0,
+  ),
+  elevatedButtonTheme: ElevatedButtonThemeData(
+    style: ElevatedButton.styleFrom(
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      minimumSize: const Size(double.infinity, 52),
+    ),
+  ),
+  navigationBarTheme: NavigationBarThemeData(
+    backgroundColor: Colors.white,
+    indicatorColor: Colors.black,
+    iconTheme: MaterialStateProperty.resolveWith((states) =>
+      states.contains(MaterialState.selected)
+        ? const IconThemeData(color: Colors.white)
+        : const IconThemeData(color: Color(0xFF8E8E93))),
+  ),
+);
+
+// Dark Theme — extends light
+ThemeData darkTheme = lightTheme.copyWith(
+  brightness: Brightness.dark,
+  scaffoldBackgroundColor: Colors.black,
+  colorScheme: const ColorScheme.dark(
+    primary: Colors.white,
+    secondary: Colors.white,
+    surface: Color(0xFF1C1C1E),
+    onPrimary: Colors.black,
+    onSurface: Colors.white,
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Colors.black,
+    foregroundColor: Colors.white,
+    elevation: 0,
+    scrolledUnderElevation: 0,
+    titleTextStyle: TextStyle(
+      fontSize: 34,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+  cardTheme: CardTheme(
+    color: const Color(0xFF1C1C1E),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    elevation: 0,
+  ),
+  navigationBarTheme: NavigationBarThemeData(
+    backgroundColor: const Color(0xFF1C1C1E),
+    indicatorColor: Colors.white,
+    iconTheme: MaterialStateProperty.resolveWith((states) =>
+      states.contains(MaterialState.selected)
+        ? const IconThemeData(color: Colors.black)
+        : const IconThemeData(color: Color(0xFF8E8E93))),
+  ),
+);
+```
+
+---
+
+## Screen Specifications
+
+### Home Page
+- AppBar: large title "Saku", actions: [settings icon]
+- BalanceCard: full width, black bg, white text, shows total balance + income/expense row
+- Section: "Recent Transactions" → last 5 transactions using TransactionItem
+- FAB: black circular "+" → open Add Transaction modal
+
+### Add Transaction Page
+- showModalBottomSheet(isScrollControlled: true)
+- SegmentedButton: Expense | Income
+- Large amount display "Rp 0" → custom numeric keypad on tap
+- Category grid: 3 columns, selected = black background
+- Date picker: showDatePicker()
+- Notes: TextField single line
+- Save button: full-width black ElevatedButton
+- Validate: amount > 0 and category selected
+
+### History Page
+- AppBar: large title "History"
+- MonthSelector: "< May 2024 >" arrows
+- SegmentedButton: All | Income | Expense
+- SectionList grouped by date with daily totals
+- Dismissible rows for swipe-to-delete
+
+### Report Page
+- AppBar: large title "Report"
+- MonthSelector at top
+- Summary row: Total Income | Total Expense
+- BarChart (fl_chart): daily spending, black bars
+- Category breakdown: icon + label + amount + LinearProgressIndicator (black fill)
+- Bottom: Net Balance bold
+
+---
+
+## Bottom Navigation Bar
+```dart
+NavigationBar(
+  destinations: const [
+    NavigationDestination(
+      icon: Icon(Icons.home_outlined),
+      selectedIcon: Icon(Icons.home),
+      label: 'Home',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.add_circle_outline),
+      selectedIcon: Icon(Icons.add_circle),
+      label: 'Add',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.list_alt_outlined),
+      selectedIcon: Icon(Icons.list_alt),
+      label: 'History',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.bar_chart_outlined),
+      selectedIcon: Icon(Icons.bar_chart),
+      label: 'Report',
+    ),
+  ],
+)
+```
+
+---
+
+## pubspec.yaml Dependencies
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_riverpod: ^2.4.0
+  riverpod_annotation: ^2.3.0
+  go_router: ^13.0.0
+  fl_chart: ^0.66.0
+  intl: ^0.19.0
+  uuid: ^4.3.0
+  freezed_annotation: ^2.4.0
+  json_annotation: ^4.8.0
+  google_fonts: ^6.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  build_runner: ^2.4.0
+  freezed: ^2.4.0
+  json_serializable: ^6.7.0
+  hive_generator: ^2.0.1
+  riverpod_generator: ^2.3.0
+```
+
+---
+## main.dart Initialization
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(TransactionModelAdapter());
+  await Hive.openBox<TransactionModel>('transactions');
+  await Hive.openBox('settings');
+  runApp(const ProviderScope(child: SakuApp()));
+}
+```
+
+---
+
+## Build Runner Command
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+---
+
+## Implementation Order
+When building this project, always follow this order:
+1. `theme.dart` + `app.dart` + `router.dart`
+2. `core/` utilities and constants
+3. Data layer: Hive model → datasource → repository impl
+4. Domain layer: entity → abstract repository → use cases
+5. Presentation layer: providers → pages → widgets
+6. Bottom navigation shell
+7. Screens: Home → Add Transaction → History → Report
+
+
+## Flavor Config
+1. Development
+2. Production
+
+## Makefile
+```
+please add build apk command for development or production
+```
