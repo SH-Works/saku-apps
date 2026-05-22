@@ -187,6 +187,7 @@ class AddTransaction {
 ---
 
 ## Categories Constant
+1. can add more categories & icons if needed
 ```dart
 class TransactionCategory {
   final String id;
@@ -200,14 +201,20 @@ class TransactionCategory {
 }
 
 const List<TransactionCategory> kCategories = [
-  TransactionCategory(id: 'food',          label: 'Food & Drinks',   icon: '🍽️'),
-  TransactionCategory(id: 'transport',     label: 'Transportation',  icon: '🚗'),
+  TransactionCategory(id: 'food',          label: 'Food',            icon: '🍽️'),
+  TransactionCategory(id: 'drink',         label: 'Drink',           icon: '🍺'),
+  TransactionCategory(id: 'coffee',        label: 'Coffee',          icon: '☕️'),
+  TransactionCategory(id: 'mineral_water', label: 'Mineral Water',   icon: '💧'),
+  TransactionCategory(id: 'cigar',         label: 'Cigar',           icon: '🚬'),
+  TransactionCategory(id: 'fuel',          label: 'Fuel',            icon: '⛽️'),
+  TransactionCategory(id: 'transport',     label: 'Transport',       icon: '🚗'),
+  TransactionCategory(id: 'internet_wifi', label: 'Internet Wifi',   icon: '🌐'),
+  TransactionCategory(id: 'quota',         label: 'Quota',           icon: '📱'),
+  TransactionCategory(id: 'toiletries',    label: 'Toiletries',      icon: '🧼'),
+  TransactionCategory(id: 'rent',          label: 'Rent',            icon: '🏠'),
+  TransactionCategory(id: 'snack',         label: 'Snack',           icon: '🍫'),
+  TransactionCategory(id: 'street_food',   label: 'Street Food',     icon: '🍜'),
   TransactionCategory(id: 'shopping',      label: 'Shopping',        icon: '🛍️'),
-  TransactionCategory(id: 'health',        label: 'Health',          icon: '🏥'),
-  TransactionCategory(id: 'entertainment', label: 'Entertainment',   icon: '🎮'),
-  TransactionCategory(id: 'education',     label: 'Education',       icon: '📚'),
-  TransactionCategory(id: 'household',     label: 'Household',       icon: '🏠'),
-  TransactionCategory(id: 'salary',        label: 'Salary / Income', icon: '💼'),
   TransactionCategory(id: 'other',         label: 'Others',          icon: '📦'),
 ];
 ```
