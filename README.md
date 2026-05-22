@@ -127,10 +127,4 @@ Show all screens in one artboard side by side, with connecting arrows
 indicating user flow navigation.
 ```
 
----
-
-## 📄 License
-
----
-
 > *"Healthy finances start with organized records."* 🪙
