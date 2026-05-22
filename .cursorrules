@@ -444,3 +444,10 @@ When building this project, always follow this order:
 ```
 please add build apk command for development or production
 ```
+
+
+## Documentation
+```
+1. please add documentation for the project include architecture, folder structure, data models, use cases, providers, pages, widgets, and bottom navigation bar.
+2. please add documentation any changes you make to the project.
+```
