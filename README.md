@@ -42,9 +42,9 @@ Saku is a minimalist personal finance tracker designed for Indonesian users, fea
 ## 🛠️ Tech Stack (Planned)
 
 ```
-Frontend   : React Native / Swift (iOS)
+Frontend   : Flutter
 Database   : SQLite / Core Data (local)
-State      : Zustand / Redux
+State      : Riverpod
 Currency   : IDR (Rupiah) — dot as thousand separator
 ```
 
