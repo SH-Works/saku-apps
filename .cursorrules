@@ -376,7 +376,7 @@ NavigationBar(
 
 ---
 
-## pubspec.yaml Dependencies
+## pubspec.yaml Dependencies can be updated
 ```yaml
 dependencies:
   flutter:
