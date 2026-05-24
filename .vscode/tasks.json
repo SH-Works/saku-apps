@@ -1,0 +1,107 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "flutter: pub get",
+      "type": "shell",
+      "command": "flutter",
+      "args": ["pub", "get"],
+      "problemMatcher": []
+    },
+    {
+      "label": "flutter: analyze",
+      "type": "shell",
+      "command": "flutter",
+      "args": ["analyze"],
+      "problemMatcher": ["$dart-build_runner"]
+    },
+    {
+      "label": "flutter: test",
+      "type": "shell",
+      "command": "flutter",
+      "args": ["test"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "build_runner: build",
+      "type": "shell",
+      "command": "dart",
+      "args": [
+        "run",
+        "build_runner",
+        "build",
+        "--delete-conflicting-outputs"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "build_runner: watch",
+      "type": "shell",
+      "command": "dart",
+      "args": [
+        "run",
+        "build_runner",
+        "watch",
+        "--delete-conflicting-outputs"
+      ],
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "build apk: development (debug)",
+      "type": "shell",
+      "command": "flutter",
+      "args": [
+        "build",
+        "apk",
+        "-t",
+        "lib/main_development.dart",
+        "--flavor",
+        "development",
+        "--dart-define=FLAVOR=development",
+        "--debug"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "build apk: production (release, split-per-abi)",
+      "type": "shell",
+      "command": "flutter",
+      "args": [
+        "build",
+        "apk",
+        "-t",
+        "lib/main_production.dart",
+        "--flavor",
+        "production",
+        "--dart-define=FLAVOR=production",
+        "--release",
+        "--split-per-abi"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "build appbundle: production (release)",
+      "type": "shell",
+      "command": "flutter",
+      "args": [
+        "build",
+        "appbundle",
+        "-t",
+        "lib/main_production.dart",
+        "--flavor",
+        "production",
+        "--dart-define=FLAVOR=production",
+        "--release"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
+}

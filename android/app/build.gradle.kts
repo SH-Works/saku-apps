@@ -20,10 +20,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.saku_apps"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -32,9 +29,32 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Saku product flavors
+    //
+    //   make run-dev / launch.json "Saku · Development …"  →  development
+    //   make run-prod / launch.json "Saku · Production …"  →  production
+    //
+    // Each flavor:
+    //   - has its own application ID so dev and prod can co-exist on a device
+    //   - injects an "appName" manifest placeholder used by AndroidManifest.xml
+    // -------------------------------------------------------------------------
+    flavorDimensions += "env"
+    productFlavors {
+        create("development") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            manifestPlaceholders["appName"] = "Saku Dev"
+        }
+        create("production") {
+            dimension = "env"
+            manifestPlaceholders["appName"] = "Saku"
         }
     }
 }
