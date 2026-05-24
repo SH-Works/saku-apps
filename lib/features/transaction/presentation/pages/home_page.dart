@@ -18,10 +18,7 @@ class HomePage extends ConsumerWidget {
     final txsAsync = ref.watch(allTransactionsStreamProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.appName),
-        toolbarHeight: 64,
-      ),
+      appBar: AppBar(title: const Text(AppStrings.appName), toolbarHeight: 64),
       body: RefreshIndicator(
         onRefresh: () async => ref.refresh(allTransactionsStreamProvider),
         child: ListView(
@@ -75,7 +72,7 @@ class HomePage extends ConsumerWidget {
               ),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: Text('Error: $e')),
+                child: Center(child: Text('${AppStrings.errorPrefix}: $e')),
               ),
             ),
           ],
@@ -134,7 +131,7 @@ class _EmptyState extends StatelessWidget {
             width: 180,
             child: ElevatedButton(
               onPressed: onAdd,
-              child: const Text('Add Transaction'),
+              child: const Text(AppStrings.addTransaction),
             ),
           ),
         ],

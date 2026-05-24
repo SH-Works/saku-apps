@@ -74,7 +74,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _saving = false);
-        _showSnack('Failed to save: $e');
+        _showSnack('${AppStrings.failedToSave}: $e');
       }
     }
   }

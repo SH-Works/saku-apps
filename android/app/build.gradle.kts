@@ -8,7 +8,9 @@ plugins {
 android {
     namespace = "com.example.saku_apps"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Pinned to the highest version any plugin requires (path_provider_android)
+    // instead of `flutter.ndkVersion` to avoid the AGP "NDK version mismatch" error.
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

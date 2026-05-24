@@ -11,23 +11,23 @@ class TransactionCategory {
 }
 
 const List<TransactionCategory> kCategories = [
-  TransactionCategory(id: 'food', label: 'Food', icon: '🍽️'),
-  TransactionCategory(id: 'drink', label: 'Drink', icon: '🍺'),
-  TransactionCategory(id: 'coffee', label: 'Coffee', icon: '☕️'),
-  TransactionCategory(id: 'mineral_water', label: 'Mineral Water', icon: '💧'),
-  TransactionCategory(id: 'cigar', label: 'Cigar', icon: '🚬'),
-  TransactionCategory(id: 'fuel', label: 'Fuel', icon: '⛽️'),
-  TransactionCategory(id: 'transport', label: 'Transport', icon: '🚗'),
+  TransactionCategory(id: 'food', label: 'Makanan', icon: '🍽️'),
+  TransactionCategory(id: 'drink', label: 'Minuman', icon: '🍺'),
+  TransactionCategory(id: 'coffee', label: 'Kopi', icon: '☕️'),
+  TransactionCategory(id: 'mineral_water', label: 'Air Mineral', icon: '💧'),
+  TransactionCategory(id: 'cigar', label: 'Rokok', icon: '🚬'),
+  TransactionCategory(id: 'fuel', label: 'Bensin', icon: '⛽️'),
+  TransactionCategory(id: 'transport', label: 'Transportasi', icon: '🚗'),
   TransactionCategory(id: 'internet_wifi', label: 'Internet Wifi', icon: '🌐'),
-  TransactionCategory(id: 'quota', label: 'Quota', icon: '📱'),
-  TransactionCategory(id: 'toiletries', label: 'Toiletries', icon: '🧼'),
-  TransactionCategory(id: 'rent', label: 'Rent', icon: '🏠'),
-  TransactionCategory(id: 'snack', label: 'Snack', icon: '🍫'),
-  TransactionCategory(id: 'street_food', label: 'Street Food', icon: '🍜'),
-  TransactionCategory(id: 'shopping', label: 'Shopping', icon: '🛍️'),
-  TransactionCategory(id: 'salary', label: 'Salary', icon: '💼'),
+  TransactionCategory(id: 'quota', label: 'Kuota', icon: '📱'),
+  TransactionCategory(id: 'toiletries', label: 'Perlengkapan Mandi', icon: '🧼'),
+  TransactionCategory(id: 'rent', label: 'Sewa', icon: '🏠'),
+  TransactionCategory(id: 'snack', label: 'Cemilan', icon: '🍫'),
+  TransactionCategory(id: 'street_food', label: 'Jajan', icon: '🍜'),
+  TransactionCategory(id: 'shopping', label: 'Belanja', icon: '🛍️'),
+  TransactionCategory(id: 'salary', label: 'Gaji', icon: '💼'),
   TransactionCategory(id: 'bonus', label: 'Bonus', icon: '🎁'),
-  TransactionCategory(id: 'other', label: 'Others', icon: '📦'),
+  TransactionCategory(id: 'other', label: 'Lainnya', icon: '📦'),
 ];
 
 TransactionCategory categoryById(String id) {
@@ -35,7 +35,7 @@ TransactionCategory categoryById(String id) {
     (c) => c.id == id,
     orElse: () => const TransactionCategory(
       id: 'other',
-      label: 'Others',
+      label: 'Lainnya',
       icon: '📦',
     ),
   );

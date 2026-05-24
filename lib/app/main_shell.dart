@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/constants/app_strings.dart';
 import '../features/transaction/presentation/pages/add_transaction_page.dart';
 
 /// Bottom-navigation shell that hosts the four primary tabs.
@@ -53,22 +54,22 @@ class MainShell extends StatelessWidget {
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            label: AppStrings.tabHome,
           ),
           NavigationDestination(
             icon: Icon(Icons.add_circle_outline),
             selectedIcon: Icon(Icons.add_circle),
-            label: 'Add',
+            label: AppStrings.tabAdd,
           ),
           NavigationDestination(
             icon: Icon(Icons.list_alt_outlined),
             selectedIcon: Icon(Icons.list_alt),
-            label: 'History',
+            label: AppStrings.tabHistory,
           ),
           NavigationDestination(
             icon: Icon(Icons.bar_chart_outlined),
             selectedIcon: Icon(Icons.bar_chart),
-            label: 'Report',
+            label: AppStrings.tabReport,
           ),
         ],
       ),

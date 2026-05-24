@@ -109,7 +109,7 @@ class _SplashPageState extends State<SplashPage>
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 48),
                 child: Text(
-                  'Record. Monitor. Save.\nAll in your pocket.\n SAKU',
+                  'Catat. Pantau. Hemat.\nSemua di saku Anda.\n SAKU',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,

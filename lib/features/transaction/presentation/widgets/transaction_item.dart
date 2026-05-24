@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme.dart';
+import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/categories.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/transaction.dart';
@@ -58,7 +59,7 @@ class TransactionItem extends StatelessWidget {
                   Text(
                     transaction.notes?.isNotEmpty == true
                         ? transaction.notes!
-                        : (isIncome ? 'Income' : 'Expense'),
+                        : (isIncome ? AppStrings.income : AppStrings.expense),
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.secondary,

@@ -91,7 +91,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 },
                 loading: () =>
                     const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Error: $e')),
+                error: (e, _) => Center(
+                  child: Text('${AppStrings.errorPrefix}: $e'),
+                ),
               ),
             ),
           ],
