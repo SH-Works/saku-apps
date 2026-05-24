@@ -77,15 +77,13 @@ class _SplashPageState extends State<SplashPage>
               position: _slideIcon,
               child: FadeTransition(
                 opacity: _fadeIcon,
-                child: Container(
-                  width: 96,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: fg,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: const Center(
-                    child: Text('🪙', style: TextStyle(fontSize: 48)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.asset(
+                    'assets/icons/app_icon.png',
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
