@@ -14,6 +14,46 @@
 - Navigation: go_router
 - Design: Minimalist Black & White, iOS-style
 - App Icon assets: ROOT_PROJECT/assets/app_icons
+
+## Google Stitch MCP
+- Google Stitch MCP is connected and available in this project
+- Use Stitch MCP to **generate UI screens, components, and assets** based on design prompts
+- Always use Stitch output as the **visual reference** — then translate it into Flutter widgets
+- Generated assets (icons, images) must be saved to `assets/` folder and registered in `pubspec.yaml`
+- Stitch-generated designs must follow the project design rules: black & white only, no colors
+
+### When to use Stitch MCP
+- Generating app icon and splash screen assets
+- Designing new screen layouts before implementing in Flutter
+- Generating widget mockups (cards, list items, charts)
+- Producing image assets for empty states or illustrations
+
+### Stitch MCP Design Prompt Template
+When calling Stitch MCP, always include these constraints:
+```
+Minimalist black & white design only.
+No colors — only #000000, #FFFFFF, and shades of gray.
+iOS Human Interface Guidelines style.
+SF Pro typography.
+App name: Saku — Personal Finance Tracker.
+```
+
+### Asset Integration Rules
+- All Stitch-generated image assets → save to `assets/images/`
+- All Stitch-generated icons → save to `assets/icons/`
+- App icon from Stitch → save to `assets/app_icons/`
+- Register all assets in `pubspec.yaml` under `flutter: assets:`
+- Use `Image.asset()` or `SvgPicture.asset()` to load in Flutter
+- Never embed base64 images directly in Dart code
+
+### Folder for Assets
+```
+assets/
+├── app_icons/          # App icon (1024x1024px, black & white)
+├── icons/              # Custom SVG/PNG icons from Stitch
+└── images/             # Illustrations, empty states, splash assets
+```
+
 ---
 
 ## Strict Coding Rules
@@ -187,6 +227,7 @@ class AddTransaction {
 ---
 
 ## Categories Constant
+1. can add more categories & icons if needed
 ```dart
 class TransactionCategory {
   final String id;
@@ -200,14 +241,20 @@ class TransactionCategory {
 }
 
 const List<TransactionCategory> kCategories = [
-  TransactionCategory(id: 'food',          label: 'Food & Drinks',   icon: '🍽️'),
-  TransactionCategory(id: 'transport',     label: 'Transportation',  icon: '🚗'),
+  TransactionCategory(id: 'food',          label: 'Food',            icon: '🍽️'),
+  TransactionCategory(id: 'drink',         label: 'Drink',           icon: '🍺'),
+  TransactionCategory(id: 'coffee',        label: 'Coffee',          icon: '☕️'),
+  TransactionCategory(id: 'mineral_water', label: 'Mineral Water',   icon: '💧'),
+  TransactionCategory(id: 'cigar',         label: 'Cigar',           icon: '🚬'),
+  TransactionCategory(id: 'fuel',          label: 'Fuel',            icon: '⛽️'),
+  TransactionCategory(id: 'transport',     label: 'Transport',       icon: '🚗'),
+  TransactionCategory(id: 'internet_wifi', label: 'Internet Wifi',   icon: '🌐'),
+  TransactionCategory(id: 'quota',         label: 'Quota',           icon: '📱'),
+  TransactionCategory(id: 'toiletries',    label: 'Toiletries',      icon: '🧼'),
+  TransactionCategory(id: 'rent',          label: 'Rent',            icon: '🏠'),
+  TransactionCategory(id: 'snack',         label: 'Snack',           icon: '🍫'),
+  TransactionCategory(id: 'street_food',   label: 'Street Food',     icon: '🍜'),
   TransactionCategory(id: 'shopping',      label: 'Shopping',        icon: '🛍️'),
-  TransactionCategory(id: 'health',        label: 'Health',          icon: '🏥'),
-  TransactionCategory(id: 'entertainment', label: 'Entertainment',   icon: '🎮'),
-  TransactionCategory(id: 'education',     label: 'Education',       icon: '📚'),
-  TransactionCategory(id: 'household',     label: 'Household',       icon: '🏠'),
-  TransactionCategory(id: 'salary',        label: 'Salary / Income', icon: '💼'),
   TransactionCategory(id: 'other',         label: 'Others',          icon: '📦'),
 ];
 ```
@@ -442,7 +489,7 @@ class _SplashPageState extends State<SplashPage>
               child: const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 48),
                 child: Text(
-                  'Record. Monitor. Save.\nAll in your pocket.',
+                  'Record. Monitor. Save.\nAll in your pocket.\n SAKU',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -572,6 +619,7 @@ dependencies:
   freezed_annotation: ^2.4.0
   json_annotation: ^4.8.0
   google_fonts: ^6.1.0
+  flutter_svg: ^2.0.0        # For Stitch-generated SVG assets
 
 dev_dependencies:
   flutter_test:
@@ -612,9 +660,11 @@ When building this project, always follow this order:
 3. Data layer: Hive model → datasource → repository impl
 4. Domain layer: entity → abstract repository → use cases
 5. Presentation layer: providers → pages → widgets
-6. `splash_page.dart` — first screen on launch
-7. Bottom navigation shell
-8. Screens: Home → Add Transaction → History → Report
+6. Use **Stitch MCP** to generate app icon + splash screen assets → save to `assets/`
+7. `splash_page.dart` — first screen on launch, using Stitch-generated assets
+8. Bottom navigation shell
+9. Screens: Home → Add Transaction → History → Report
+10. Use **Stitch MCP** for any additional UI mockups or image assets needed per screen
 
 
 ## Flavor Config
