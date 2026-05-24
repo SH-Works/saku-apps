@@ -1,0 +1,96 @@
+{
+  // Launch configurations for the Saku — Personal Finance Tracker app.
+  // Two flavors are wired up: `development` and `production`, each with
+  // debug / profile / release variants.
+  //
+  // Usage:
+  //   - Open the Run & Debug panel (Ctrl+Shift+D)
+  //   - Pick a configuration from the dropdown
+  //   - Press F5
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Saku · Development (debug)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_development.dart",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=FLAVOR=development"
+      ]
+    },
+    {
+      "name": "Saku · Development (profile)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_development.dart",
+      "flutterMode": "profile",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=FLAVOR=development"
+      ]
+    },
+    {
+      "name": "Saku · Development (release)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_development.dart",
+      "flutterMode": "release",
+      "args": [
+        "--flavor",
+        "development",
+        "--dart-define=FLAVOR=development"
+      ]
+    },
+    {
+      "name": "Saku · Production (debug)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=FLAVOR=production"
+      ]
+    },
+    {
+      "name": "Saku · Production (profile)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_production.dart",
+      "flutterMode": "profile",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=FLAVOR=production"
+      ]
+    },
+    {
+      "name": "Saku · Production (release)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_production.dart",
+      "flutterMode": "release",
+      "args": [
+        "--flavor",
+        "production",
+        "--dart-define=FLAVOR=production"
+      ]
+    },
+    {
+      "name": "Saku · Default entry (main.dart)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart"
+    },
+    {
+      "name": "Saku · Tests",
+      "request": "launch",
+      "type": "dart",
+      "program": "test/"
+    }
+  ],
+  "compounds": []
+}
