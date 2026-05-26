@@ -30,10 +30,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final monthTxsAsync = ref.watch(monthTransactionsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.history),
-        toolbarHeight: 64,
-      ),
+      appBar: AppBar(title: const Text(AppStrings.history), toolbarHeight: 64),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
         child: Column(
@@ -45,17 +42,28 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                   ref.read(selectedMonthProvider.notifier).state = d,
             ),
             const SizedBox(height: 12),
-            Center(
+            SizedBox(
+              width: double.infinity,
               child: SegmentedButton<_HistoryFilter>(
-                segments: const [
+                segments: [
                   ButtonSegment(
-                      value: _HistoryFilter.all, label: Text(AppStrings.all)),
+                    value: _HistoryFilter.all,
+                    label: Text(style: TextStyle(fontSize: 14), AppStrings.all),
+                  ),
                   ButtonSegment(
-                      value: _HistoryFilter.income,
-                      label: Text(AppStrings.income)),
+                    value: _HistoryFilter.income,
+                    label: Text(
+                      style: TextStyle(fontSize: 14),
+                      AppStrings.income,
+                    ),
+                  ),
                   ButtonSegment(
-                      value: _HistoryFilter.expense,
-                      label: Text(AppStrings.expense)),
+                    value: _HistoryFilter.expense,
+                    label: Text(
+                      style: TextStyle(fontSize: 14),
+                      AppStrings.expense,
+                    ),
+                  ),
                 ],
                 selected: {_filter},
                 showSelectedIcon: false,
@@ -89,11 +97,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                     },
                   );
                 },
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(
-                  child: Text('${AppStrings.errorPrefix}: $e'),
-                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) =>
+                    Center(child: Text('${AppStrings.errorPrefix}: $e')),
               ),
             ),
           ],
@@ -124,8 +130,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
       );
       map[key]!.transactions.add(tx);
     }
-    final list = map.values.toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final list = map.values.toList()..sort((a, b) => b.date.compareTo(a.date));
     return list;
   }
 
@@ -237,8 +242,10 @@ class _DaySection extends StatelessWidget {
                         color: Colors.red.shade400.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.delete_outline_rounded,
-                          color: Colors.redAccent),
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.redAccent,
+                      ),
                     ),
                     child: TransactionItem(transaction: transactions[i]),
                   ),

@@ -3,10 +3,12 @@ import 'package:intl/intl.dart';
 class DateHelper {
   DateHelper._();
 
-  static final DateFormat _monthYear = DateFormat('MMMM yyyy');
-  static final DateFormat _dayMonth = DateFormat('d MMM yyyy');
-  static final DateFormat _fullDate = DateFormat('EEEE, d MMM yyyy');
-  static final DateFormat _dayLabel = DateFormat('EEE, d MMM');
+  static const _locale = 'id';
+
+  static final DateFormat _monthYear = DateFormat('MMMM yyyy', _locale);
+  static final DateFormat _dayMonth = DateFormat('d MMM yyyy', _locale);
+  static final DateFormat _fullDate = DateFormat('EEEE, d MMM yyyy', _locale);
+  static final DateFormat _dayLabel = DateFormat('EEE, d MMM', _locale);
 
   static String formatMonthYear(DateTime date) => _monthYear.format(date);
   static String formatDayMonth(DateTime date) => _dayMonth.format(date);

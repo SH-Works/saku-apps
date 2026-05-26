@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/app.dart';
 import 'core/config/flavor_config.dart';
@@ -19,6 +20,7 @@ Future<void> main() async {
 
 Future<void> bootstrap(Flavor flavor) async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id', null);
   FlavorConfig.initialize(flavor);
 
   await Hive.initFlutter();
