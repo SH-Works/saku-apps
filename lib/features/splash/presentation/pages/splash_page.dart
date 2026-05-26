@@ -24,28 +24,34 @@ class _SplashPageState extends State<SplashPage>
       duration: const Duration(milliseconds: 2000),
     );
 
-    _slideIcon = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
-    ));
+    _slideIcon = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _controller,
+            curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+          ),
+        );
 
-    _fadeIcon = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
-    ));
+    _fadeIcon = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
+      ),
+    );
 
-    _fadeText = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.4, 0.7, curve: Curves.easeIn),
-    ));
+    _fadeText = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 0.7, curve: Curves.easeIn),
+      ),
+    );
 
-    _fadeMotto = Tween<double>(begin: 0, end: 1).animate(CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.65, 1.0, curve: Curves.easeIn),
-    ));
+    _fadeMotto = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.65, 1.0, curve: Curves.easeIn),
+      ),
+    );
 
     _controller.forward();
 
@@ -81,8 +87,8 @@ class _SplashPageState extends State<SplashPage>
                   borderRadius: BorderRadius.circular(24),
                   child: Image.asset(
                     'assets/icons/app_icon.png',
-                    width: 96,
-                    height: 96,
+                    width: 180,
+                    height: 180,
                     fit: BoxFit.cover,
                   ),
                 ),

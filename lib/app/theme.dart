@@ -1,7 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+const _kFontFamily = 'Inter';
 
 class AppColors {
   AppColors._();
@@ -15,54 +16,90 @@ class AppColors {
   static const divider = Color(0xFFE0E0E0);
 }
 
+// Bundled Inter font (assets/fonts/). Identical in debug AND release — no
+// internet access required.
 TextTheme _buildTextTheme(Color onSurface) {
-  return GoogleFonts.interTextTheme(
-    ThemeData.light().textTheme.apply(
-          bodyColor: onSurface,
-          displayColor: onSurface,
-        ),
-  ).copyWith(
-    displayLarge: GoogleFonts.inter(
+  return TextTheme(
+    displayLarge: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 40,
       fontWeight: FontWeight.bold,
       letterSpacing: -1.5,
       color: onSurface,
     ),
-    headlineLarge: GoogleFonts.inter(
+    headlineLarge: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 34,
       fontWeight: FontWeight.bold,
       letterSpacing: -0.8,
       color: onSurface,
     ),
-    titleLarge: GoogleFonts.inter(
+    headlineMedium: TextStyle(
+      fontFamily: _kFontFamily,
+      fontSize: 28,
+      fontWeight: FontWeight.bold,
+      letterSpacing: -0.5,
+      color: onSurface,
+    ),
+    headlineSmall: TextStyle(
+      fontFamily: _kFontFamily,
+      fontSize: 24,
+      fontWeight: FontWeight.w600,
+      color: onSurface,
+    ),
+    titleLarge: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 20,
       fontWeight: FontWeight.w600,
       color: onSurface,
     ),
-    titleMedium: GoogleFonts.inter(
+    titleMedium: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 17,
       fontWeight: FontWeight.w600,
       color: onSurface,
     ),
-    bodyLarge: GoogleFonts.inter(
+    titleSmall: TextStyle(
+      fontFamily: _kFontFamily,
+      fontSize: 15,
+      fontWeight: FontWeight.w600,
+      color: onSurface,
+    ),
+    bodyLarge: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 17,
       fontWeight: FontWeight.w400,
       color: onSurface,
     ),
-    bodyMedium: GoogleFonts.inter(
+    bodyMedium: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 15,
       fontWeight: FontWeight.w400,
       color: onSurface,
     ),
-    bodySmall: GoogleFonts.inter(
+    bodySmall: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 13,
       fontWeight: FontWeight.w400,
       color: AppColors.secondary,
     ),
-    labelLarge: GoogleFonts.inter(
+    labelLarge: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 15,
       fontWeight: FontWeight.w600,
       color: onSurface,
+    ),
+    labelMedium: TextStyle(
+      fontFamily: _kFontFamily,
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: onSurface,
+    ),
+    labelSmall: TextStyle(
+      fontFamily: _kFontFamily,
+      fontSize: 11,
+      fontWeight: FontWeight.w500,
+      color: AppColors.secondary,
     ),
   );
 }
@@ -70,6 +107,7 @@ TextTheme _buildTextTheme(Color onSurface) {
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
+  fontFamily: _kFontFamily,
   scaffoldBackgroundColor: AppColors.white,
   colorScheme: const ColorScheme.light(
     primary: AppColors.black,
@@ -82,13 +120,14 @@ final ThemeData lightTheme = ThemeData(
     onError: AppColors.white,
   ),
   textTheme: _buildTextTheme(AppColors.black),
-  appBarTheme: AppBarTheme(
+  appBarTheme: const AppBarTheme(
     backgroundColor: AppColors.white,
     foregroundColor: AppColors.black,
     elevation: 0,
     scrolledUnderElevation: 0,
     centerTitle: false,
-    titleTextStyle: GoogleFonts.inter(
+    titleTextStyle: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 34,
       fontWeight: FontWeight.bold,
       color: AppColors.black,
@@ -107,7 +146,8 @@ final ThemeData lightTheme = ThemeData(
       foregroundColor: AppColors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       minimumSize: const Size(double.infinity, 52),
-      textStyle: GoogleFonts.inter(
+      textStyle: const TextStyle(
+        fontFamily: _kFontFamily,
         fontSize: 17,
         fontWeight: FontWeight.w600,
       ),
@@ -155,7 +195,8 @@ final ThemeData lightTheme = ThemeData(
     elevation: 0,
     height: 64,
     labelTextStyle: WidgetStateProperty.resolveWith((states) {
-      return GoogleFonts.inter(
+      return TextStyle(
+        fontFamily: _kFontFamily,
         fontSize: 11,
         fontWeight: FontWeight.w500,
         color: states.contains(WidgetState.selected)
@@ -209,13 +250,14 @@ final ThemeData darkTheme = lightTheme.copyWith(
     onError: AppColors.black,
   ),
   textTheme: _buildTextTheme(AppColors.white),
-  appBarTheme: AppBarTheme(
+  appBarTheme: const AppBarTheme(
     backgroundColor: AppColors.black,
     foregroundColor: AppColors.white,
     elevation: 0,
     scrolledUnderElevation: 0,
     centerTitle: false,
-    titleTextStyle: GoogleFonts.inter(
+    titleTextStyle: TextStyle(
+      fontFamily: _kFontFamily,
       fontSize: 34,
       fontWeight: FontWeight.bold,
       color: AppColors.white,
@@ -234,7 +276,8 @@ final ThemeData darkTheme = lightTheme.copyWith(
       foregroundColor: AppColors.black,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       minimumSize: const Size(double.infinity, 52),
-      textStyle: GoogleFonts.inter(
+      textStyle: const TextStyle(
+        fontFamily: _kFontFamily,
         fontSize: 17,
         fontWeight: FontWeight.w600,
       ),
@@ -282,7 +325,8 @@ final ThemeData darkTheme = lightTheme.copyWith(
     elevation: 0,
     height: 64,
     labelTextStyle: WidgetStateProperty.resolveWith((states) {
-      return GoogleFonts.inter(
+      return TextStyle(
+        fontFamily: _kFontFamily,
         fontSize: 11,
         fontWeight: FontWeight.w500,
         color: states.contains(WidgetState.selected)

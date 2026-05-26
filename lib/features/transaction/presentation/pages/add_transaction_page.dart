@@ -80,9 +80,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   }
 
   void _showSnack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -134,16 +134,23 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                   controller: scrollController,
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                   children: [
-                    Center(
+                    SizedBox(
+                      width: double.infinity,
                       child: SegmentedButton<TransactionType>(
                         segments: const [
                           ButtonSegment(
                             value: TransactionType.expense,
-                            label: Text(AppStrings.expense),
+                            label: Text(
+                              style: TextStyle(fontSize: 14),
+                              AppStrings.expense,
+                            ),
                           ),
                           ButtonSegment(
                             value: TransactionType.income,
-                            label: Text(AppStrings.income),
+                            label: Text(
+                              style: TextStyle(fontSize: 14),
+                              AppStrings.income,
+                            ),
                           ),
                         ],
                         selected: {_type},
@@ -172,7 +179,9 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                       onTap: _pickDate,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
@@ -185,12 +194,15 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                               child: Text(
                                 DateHelper.formatFullDate(_date),
                                 style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
-                            const Icon(Icons.chevron_right_rounded,
-                                color: AppColors.secondary),
+                            const Icon(
+                              Icons.chevron_right_rounded,
+                              color: AppColors.secondary,
+                            ),
                           ],
                         ),
                       ),

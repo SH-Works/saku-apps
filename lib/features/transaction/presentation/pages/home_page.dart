@@ -128,7 +128,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           SizedBox(
-            width: 180,
+            width: double.infinity,
             child: ElevatedButton(
               onPressed: onAdd,
               child: const Text(AppStrings.addTransaction),
