@@ -8,6 +8,7 @@ import '../../domain/entities/transaction.dart';
 import '../../domain/entities/transaction_summary.dart';
 import '../../domain/repositories/transaction_repository.dart';
 import '../../domain/usecases/add_transaction.dart';
+import '../../domain/usecases/delete_all_transactions.dart';
 import '../../domain/usecases/delete_transaction.dart';
 import '../../domain/usecases/get_all_transactions.dart';
 import '../../domain/usecases/get_summary.dart';
@@ -40,6 +41,11 @@ final addTransactionUseCaseProvider = Provider<AddTransaction>((ref) {
 
 final deleteTransactionUseCaseProvider = Provider<DeleteTransaction>((ref) {
   return DeleteTransaction(ref.watch(transactionRepositoryProvider));
+});
+
+final deleteAllTransactionsUseCaseProvider =
+    Provider<DeleteAllTransactions>((ref) {
+  return DeleteAllTransactions(ref.watch(transactionRepositoryProvider));
 });
 
 final getAllTransactionsUseCaseProvider = Provider<GetAllTransactions>((ref) {

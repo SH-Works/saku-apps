@@ -7,6 +7,7 @@ abstract class TransactionLocalDataSource {
   Future<List<TransactionModel>> getByMonth(int year, int month);
   Future<void> add(TransactionModel transaction);
   Future<void> delete(String id);
+  Future<void> deleteAll();
   Stream<List<TransactionModel>> watchAll();
 }
 
@@ -41,6 +42,11 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
   @override
   Future<void> delete(String id) async {
     await box.delete(id);
+  }
+
+  @override
+  Future<void> deleteAll() async {
+    await box.clear();
   }
 
   @override

@@ -32,6 +32,11 @@ class TransactionRepositoryImpl implements TransactionRepository {
   }
 
   @override
+  Future<void> deleteAllTransactions() async {
+    await localDataSource.deleteAll();
+  }
+
+  @override
   Future<TransactionSummary> getSummary(int year, int month) async {
     final txs = await getTransactionsByMonth(year, month);
 
