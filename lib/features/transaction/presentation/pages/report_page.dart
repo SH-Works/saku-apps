@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+// ignore_for_file: deprecated_member_use
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -27,6 +28,13 @@ class ReportPage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(AppStrings.report),
         toolbarHeight: 64,
+        actions: [
+          IconButton(
+            tooltip: AppStrings.clearAllData,
+            icon: const Icon(Icons.restore_rounded),
+            onPressed: () => _confirmClearAll(context, ref),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -113,8 +121,7 @@ class ReportPage extends ConsumerWidget {
               children: [
                 const Text(
                   AppStrings.netBalance,
-                  style: TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w600),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
                 Text(
                   formatRupiah(summary.balance),
@@ -130,6 +137,35 @@ class ReportPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmClearAll(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text(AppStrings.clearAllData),
+        content: const Text(AppStrings.clearAllDataConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text(AppStrings.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text(
+              AppStrings.clearAllDataAction,
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref
+          .read(deleteAllTransactionsUseCaseProvider)
+          .call();
+    }
   }
 }
 
@@ -218,7 +254,9 @@ class _CategoryRow extends StatelessWidget {
                 child: Text(
                   cat.label,
                   style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w600),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Text(
@@ -236,8 +274,7 @@ class _CategoryRow extends StatelessWidget {
             child: LinearProgressIndicator(
               value: ratio.clamp(0.0, 1.0),
               minHeight: 6,
-              backgroundColor:
-                  Theme.of(context).colorScheme.surface,
+              backgroundColor: Theme.of(context).colorScheme.surface,
               valueColor: AlwaysStoppedAnimation<Color>(fg),
             ),
           ),

@@ -42,6 +42,11 @@ class AppStrings {
   static const netBalance = 'Saldo Bersih';
   static const categoryBreakdown = 'Rincian Kategori';
   static const dailySpending = 'Pengeluaran Harian';
+  static const reset = 'Atur Ulang';
+  static const clearAllData = 'Hapus Semua Data';
+  static const clearAllDataConfirm =
+      'Semua transaksi akan dihapus permanen.\nTindakan ini tidak dapat dibatalkan.';
+  static const clearAllDataAction = 'Hapus Semua';
 
   // Pengaturan / umum
   static const settings = 'Pengaturan';

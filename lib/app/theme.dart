@@ -14,6 +14,7 @@ class AppColors {
   static const darkSurfaceAlt = Color(0xFF2C2C2E);
   static const secondary = Color(0xFF8E8E93);
   static const divider = Color(0xFFE0E0E0);
+  static const red = Color(0xFFB71C1C);
 }
 
 // Bundled Inter font (assets/fonts/). Identical in debug AND release — no
