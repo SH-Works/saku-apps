@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/utils/date_helper.dart';
@@ -34,7 +35,7 @@ class MonthSelector extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(Icons.chevron_left_rounded, color: fg),
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, color: fg, size: 24),
             onPressed: () => _shift(-1),
             splashRadius: 20,
           ),
@@ -50,7 +51,7 @@ class MonthSelector extends StatelessWidget {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.chevron_right_rounded, color: fg),
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: fg, size: 24),
             onPressed: () => _shift(1),
             splashRadius: 20,
           ),

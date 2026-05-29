@@ -1,7 +1,9 @@
+import 'package:hugeicons/hugeicons.dart';
+
 class TransactionCategory {
   final String id;
   final String label;
-  final String icon;
+  final List<List<dynamic>> icon;
 
   const TransactionCategory({
     required this.id,
@@ -11,23 +13,70 @@ class TransactionCategory {
 }
 
 const List<TransactionCategory> kCategories = [
-  TransactionCategory(id: 'food', label: 'Makanan', icon: '🍽️'),
-  TransactionCategory(id: 'drink', label: 'Minuman', icon: '🍺'),
-  TransactionCategory(id: 'coffee', label: 'Kopi', icon: '☕️'),
-  TransactionCategory(id: 'mineral_water', label: 'Air Mineral', icon: '💧'),
-  TransactionCategory(id: 'cigar', label: 'Rokok', icon: '🚬'),
-  TransactionCategory(id: 'fuel', label: 'Bensin', icon: '⛽️'),
-  TransactionCategory(id: 'transport', label: 'Transportasi', icon: '🚗'),
-  TransactionCategory(id: 'internet_wifi', label: 'Internet Wifi', icon: '🌐'),
-  TransactionCategory(id: 'quota', label: 'Kuota', icon: '📱'),
-  TransactionCategory(id: 'toiletries', label: 'Perlengkapan Mandi', icon: '🧼'),
-  TransactionCategory(id: 'rent', label: 'Sewa', icon: '🏠'),
-  TransactionCategory(id: 'snack', label: 'Cemilan', icon: '🍫'),
-  TransactionCategory(id: 'street_food', label: 'Jajan', icon: '🍜'),
-  TransactionCategory(id: 'shopping', label: 'Belanja', icon: '🛍️'),
-  TransactionCategory(id: 'salary', label: 'Gaji', icon: '💼'),
-  TransactionCategory(id: 'bonus', label: 'Bonus', icon: '🎁'),
-  TransactionCategory(id: 'other', label: 'Lainnya', icon: '📦'),
+  TransactionCategory(
+      id: 'food',
+      label: 'Makanan',
+      icon: HugeIcons.strokeRoundedRestaurant01),
+  TransactionCategory(
+      id: 'drink', label: 'Minuman', icon: HugeIcons.strokeRoundedDrink),
+  TransactionCategory(
+      id: 'coffee', label: 'Kopi', icon: HugeIcons.strokeRoundedCoffee01),
+  TransactionCategory(
+      id: 'mineral_water',
+      label: 'Air Mineral',
+      icon: HugeIcons.strokeRoundedSodaCan),
+  TransactionCategory(
+      id: 'cigar',
+      label: 'Rokok',
+      icon: HugeIcons.strokeRoundedCigarette),
+  TransactionCategory(
+      id: 'fuel',
+      label: 'Bensin',
+      icon: HugeIcons.strokeRoundedFuelStation),
+  TransactionCategory(
+      id: 'transport',
+      label: 'Transportasi',
+      icon: HugeIcons.strokeRoundedCar01),
+  TransactionCategory(
+      id: 'internet_wifi',
+      label: 'Internet Wifi',
+      icon: HugeIcons.strokeRoundedWifi01),
+  TransactionCategory(
+      id: 'quota',
+      label: 'Kuota',
+      icon: HugeIcons.strokeRoundedSmartPhone01),
+  TransactionCategory(
+      id: 'toiletries',
+      label: 'Perlengkapan Mandi',
+      icon: HugeIcons.strokeRoundedShampoo),
+  TransactionCategory(
+      id: 'rent',
+      label: 'Sewa',
+      icon: HugeIcons.strokeRoundedBuilding01),
+  TransactionCategory(
+      id: 'snack',
+      label: 'Cemilan',
+      icon: HugeIcons.strokeRoundedCupcake01),
+  TransactionCategory(
+      id: 'street_food',
+      label: 'Jajan',
+      icon: HugeIcons.strokeRoundedNoodles),
+  TransactionCategory(
+      id: 'shopping',
+      label: 'Belanja',
+      icon: HugeIcons.strokeRoundedShoppingBag01),
+  TransactionCategory(
+      id: 'salary',
+      label: 'Gaji',
+      icon: HugeIcons.strokeRoundedMoney01),
+  TransactionCategory(
+      id: 'bonus',
+      label: 'Bonus',
+      icon: HugeIcons.strokeRoundedGiftCard),
+  TransactionCategory(
+      id: 'other',
+      label: 'Lainnya',
+      icon: HugeIcons.strokeRoundedPackage),
 ];
 
 TransactionCategory categoryById(String id) {
@@ -36,7 +85,7 @@ TransactionCategory categoryById(String id) {
     orElse: () => const TransactionCategory(
       id: 'other',
       label: 'Lainnya',
-      icon: '📦',
+      icon: HugeIcons.strokeRoundedPackage,
     ),
   );
 }

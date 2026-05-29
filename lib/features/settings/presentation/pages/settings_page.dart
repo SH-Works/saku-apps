@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -23,7 +24,7 @@ class SettingsPage extends ConsumerWidget {
         title: const Text(AppStrings.settings),
         toolbarHeight: 64,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 24),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -120,8 +121,8 @@ class SettingsPage extends ConsumerWidget {
             children: [
               _SettingsTile(
                 title: AppStrings.exportCsv,
-                trailing: const Icon(
-                  Icons.ios_share_rounded,
+                trailing: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedShare01,
                   size: 18,
                   color: AppColors.secondary,
                 ),

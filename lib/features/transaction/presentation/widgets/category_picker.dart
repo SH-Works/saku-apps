@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/categories.dart';
@@ -46,7 +47,11 @@ class CategoryPicker extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(cat.icon, style: const TextStyle(fontSize: 22)),
+                  HugeIcon(
+                    icon: cat.icon,
+                    color: isSelected ? selectedFg : defaultFg,
+                    size: 22,
+                  ),
                   const SizedBox(height: 4),
                   Text(
                     cat.label,

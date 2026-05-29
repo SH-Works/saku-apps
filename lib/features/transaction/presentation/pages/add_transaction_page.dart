@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../app/theme.dart';
@@ -188,7 +189,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.calendar_today_outlined, size: 18),
+                            const HugeIcon(icon: HugeIcons.strokeRoundedCalendar01, size: 18),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -199,9 +200,10 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                                 ),
                               ),
                             ),
-                            const Icon(
-                              Icons.chevron_right_rounded,
+                            const HugeIcon(
+                              icon: HugeIcons.strokeRoundedArrowRight01,
                               color: AppColors.secondary,
+                              size: 18,
                             ),
                           ],
                         ),

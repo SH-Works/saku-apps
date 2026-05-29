@@ -1,6 +1,7 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// ignore_for_file: deprecated_member_use
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -31,7 +32,7 @@ class ReportPage extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: AppStrings.clearAllData,
-            icon: const Icon(Icons.restore_rounded),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedRefresh, size: 24),
             onPressed: () => _confirmClearAll(context, ref),
           ),
         ],
@@ -51,7 +52,7 @@ class ReportPage extends ConsumerWidget {
                 child: _StatCard(
                   label: AppStrings.totalIncome,
                   amount: summary.totalIncome,
-                  icon: Icons.arrow_downward_rounded,
+                  icon: HugeIcons.strokeRoundedMoneyReceive01,
                 ),
               ),
               const SizedBox(width: 12),
@@ -59,7 +60,7 @@ class ReportPage extends ConsumerWidget {
                 child: _StatCard(
                   label: AppStrings.totalExpense,
                   amount: summary.totalExpense,
-                  icon: Icons.arrow_upward_rounded,
+                  icon: HugeIcons.strokeRoundedMoneyRemove01,
                 ),
               ),
             ],
@@ -172,7 +173,7 @@ class ReportPage extends ConsumerWidget {
 class _StatCard extends StatelessWidget {
   final String label;
   final int amount;
-  final IconData icon;
+  final List<List<dynamic>> icon;
 
   const _StatCard({
     required this.label,
@@ -193,7 +194,7 @@ class _StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: AppColors.secondary),
+              HugeIcon(icon: icon, size: 14, color: AppColors.secondary),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
@@ -248,7 +249,7 @@ class _CategoryRow extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text(cat.icon, style: const TextStyle(fontSize: 18)),
+              HugeIcon(icon: cat.icon, color: fg, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

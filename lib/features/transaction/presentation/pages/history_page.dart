@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -242,9 +243,10 @@ class _DaySection extends StatelessWidget {
                         color: Colors.red.shade400.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(
-                        Icons.delete_outline_rounded,
+                      child: const HugeIcon(
+                        icon: HugeIcons.strokeRoundedDelete01,
                         color: Colors.redAccent,
+                        size: 24,
                       ),
                     ),
                     child: TransactionItem(transaction: transactions[i]),

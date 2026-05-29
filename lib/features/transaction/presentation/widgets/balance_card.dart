@@ -1,6 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -70,7 +71,7 @@ class BalanceCard extends StatelessWidget {
                   amount: income,
                   fg: fg,
                   fgSecondary: fgSecondary,
-                  icon: Icons.arrow_downward_rounded,
+                  icon: HugeIcons.strokeRoundedMoneyReceive01,
                 ),
               ),
               Container(
@@ -84,7 +85,7 @@ class BalanceCard extends StatelessWidget {
                   amount: expense,
                   fg: fg,
                   fgSecondary: fgSecondary,
-                  icon: Icons.arrow_upward_rounded,
+                  icon: HugeIcons.strokeRoundedMoneyRemove01,
                 ),
               ),
             ],
@@ -100,7 +101,7 @@ class _MiniStat extends StatelessWidget {
   final int amount;
   final Color fg;
   final Color fgSecondary;
-  final IconData icon;
+  final List<List<dynamic>> icon;
 
   const _MiniStat({
     required this.label,
@@ -119,7 +120,7 @@ class _MiniStat extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 14, color: fgSecondary),
+              HugeIcon(icon: icon, size: 14, color: fgSecondary),
               const SizedBox(width: 4),
               Text(
                 label,
