@@ -5,6 +5,8 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'app/app.dart';
 import 'core/config/flavor_config.dart';
+import 'core/services/notification_service.dart';
+import 'features/settings/presentation/providers/settings_provider.dart';
 import 'features/transaction/data/datasources/transaction_local_datasource.dart';
 import 'features/transaction/data/models/transaction_model.dart';
 import 'features/transaction/presentation/providers/transaction_provider.dart';
@@ -26,15 +28,19 @@ Future<void> bootstrap(Flavor flavor) async {
   await Hive.initFlutter();
   Hive.registerAdapters();
 
-  final boxName =
+  final txBoxName =
       '${TransactionLocalDataSourceImpl.boxName}${FlavorConfig.instance.hiveBoxSuffix}';
-  final txBox = await Hive.openBox<TransactionModel>(boxName);
-  await Hive.openBox('settings${FlavorConfig.instance.hiveBoxSuffix}');
+  final txBox = await Hive.openBox<TransactionModel>(txBoxName);
+  final settingsBox =
+      await Hive.openBox('settings${FlavorConfig.instance.hiveBoxSuffix}');
+
+  await NotificationService.init();
 
   runApp(
     ProviderScope(
       overrides: [
         transactionBoxProvider.overrideWithValue(txBox),
+        settingsBoxProvider.overrideWithValue(settingsBox),
       ],
       child: const SakuApp(),
     ),

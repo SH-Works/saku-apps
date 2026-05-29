@@ -55,6 +55,30 @@ class AppStrings {
   static const confirm = 'Konfirmasi';
   static const addTransaction = 'Tambah Transaksi';
 
+  // Settings — sections
+  static const sectionAppearance = 'Tampilan';
+  static const sectionNotifications = 'Notifikasi';
+  static const sectionData = 'Data';
+  static const sectionAbout = 'Tentang';
+
+  // Settings — appearance
+  static const theme = 'Tema';
+  static const themeSystem = 'Sistem';
+  static const themeLight = 'Terang';
+  static const themeDark = 'Gelap';
+
+  // Settings — notifications
+  static const dailyReminder = 'Pengingat Harian';
+  static const reminderTime = 'Waktu Notifikasi';
+
+  // Settings — data
+  static const exportCsv = 'Ekspor Data (CSV)';
+  static const exportSuccess = 'Data berhasil diekspor';
+
+  // Settings — about
+  static const appVersion = 'Versi Aplikasi';
+  static const builtWith = 'Dibuat oleh';
+
   // Error
   static const errorPrefix = 'Terjadi kesalahan';
   static const failedToSave = 'Gagal menyimpan';

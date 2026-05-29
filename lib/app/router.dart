@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/splash/presentation/pages/splash_page.dart';
 import '../features/transaction/presentation/pages/history_page.dart';
 import '../features/transaction/presentation/pages/home_page.dart';
@@ -14,6 +15,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/splash',
       builder: (_, __) => const SplashPage(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (_, __) => const SettingsPage(),
     ),
     ShellRoute(
       builder: (context, state, child) => MainShell(child: child),

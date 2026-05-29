@@ -571,6 +571,15 @@ final router = GoRouter(
 - Category breakdown: icon + label + amount + LinearProgressIndicator (black fill)
 - Bottom: Net Balance bold
 
+### Settings Page — settings_page.dart
+- Pushed screen from Home AppBar gear icon
+- iOS grouped ListView with sections
+- Sections: General, Appearance, Data, Notifications, About
+- Theme toggle: Light | Dark | System (persist to Hive 'settings' box)
+- Daily reminder: local_notifications package
+- Export data: share_plus package → export as CSV
+- Clear all data: shows confirmation dialog before deleting Hive box
+
 ---
 
 ## Bottom Navigation Bar
