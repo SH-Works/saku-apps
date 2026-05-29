@@ -18,7 +18,17 @@ class HomePage extends ConsumerWidget {
     final txsAsync = ref.watch(allTransactionsStreamProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.appName), toolbarHeight: 64),
+      appBar: AppBar(
+        title: const Text(AppStrings.appName),
+        toolbarHeight: 64,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: AppStrings.settings,
+            onPressed: () => context.push('/settings'),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () async => ref.refresh(allTransactionsStreamProvider),
         child: ListView(
