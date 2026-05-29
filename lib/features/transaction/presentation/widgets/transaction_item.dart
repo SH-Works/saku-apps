@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -39,7 +40,7 @@ class TransactionItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               alignment: Alignment.center,
-              child: Text(cat.icon, style: const TextStyle(fontSize: 22)),
+              child: HugeIcon(icon: cat.icon, color: fg, size: 22),
             ),
             const SizedBox(width: 12),
             Expanded(

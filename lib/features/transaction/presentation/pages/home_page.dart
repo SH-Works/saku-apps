@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
@@ -23,7 +24,7 @@ class HomePage extends ConsumerWidget {
         toolbarHeight: 64,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedSetting07, size: 24),
             tooltip: AppStrings.settings,
             onPressed: () => context.push('/settings'),
           ),
@@ -90,7 +91,7 @@ class HomePage extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAdd(context),
-        child: const Icon(Icons.add, size: 28),
+        child: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 28),
       ),
     );
   }

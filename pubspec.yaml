@@ -43,6 +43,13 @@ dependencies:
   flutter_local_notifications: ^17.2.0
   timezone: ^0.9.4
 
+  # Icons
+  hugeicons: ^1.1.7
+
+dependency_overrides:
+  # hugeicons requires flutter_svg ^2.0.9; lock to the last stable 2.0.x.
+  flutter_svg: ">=2.0.10+1 <2.1.0"
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
