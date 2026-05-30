@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/settings/presentation/pages/settings_page.dart';
@@ -16,6 +17,7 @@ final GoRouter appRouter = GoRouter(
       path: '/splash',
       builder: (_, __) => const SplashPage(),
     ),
+    // /home (and shell children) fade in when navigated to from splash
     GoRoute(
       path: '/settings',
       builder: (_, __) => const SettingsPage(),
@@ -25,7 +27,20 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/home',
-          pageBuilder: (_, __) => const NoTransitionPage(child: HomePage()),
+          pageBuilder: (context, state) => CustomTransitionPage(
+            key: state.pageKey,
+            child: const HomePage(),
+            transitionDuration: const Duration(milliseconds: 500),
+            reverseTransitionDuration: Duration.zero,
+            transitionsBuilder: (context, animation, _, child) =>
+                FadeTransition(
+              opacity: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeIn,
+              ),
+              child: child,
+            ),
+          ),
         ),
         // /add is handled as a modal sheet from MainShell, but we still
         // register the route so deep-links don't 404.
