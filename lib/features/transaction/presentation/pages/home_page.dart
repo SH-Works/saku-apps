@@ -24,7 +24,10 @@ class HomePage extends ConsumerWidget {
         toolbarHeight: 64,
         actions: [
           IconButton(
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedSetting07, size: 24),
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedSetting07,
+              size: 24,
+            ),
             tooltip: AppStrings.settings,
             onPressed: () => context.push('/settings'),
           ),
@@ -125,7 +128,7 @@ class _EmptyState extends StatelessWidget {
       ),
       child: Column(
         children: [
-          const Text('🪙', style: TextStyle(fontSize: 40)),
+          Image.asset('assets/icons/app_icon.png', width: 100, height: 100),
           const SizedBox(height: 12),
           Text(
             AppStrings.noTransactions,
