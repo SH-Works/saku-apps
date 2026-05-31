@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/constants/categories.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_helper.dart';
 import '../../domain/entities/transaction.dart';
@@ -49,19 +50,19 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                 segments: [
                   ButtonSegment(
                     value: _HistoryFilter.all,
-                    label: Text(style: TextStyle(fontSize: 14), AppStrings.all),
+                    label: Text(style: const TextStyle(fontSize: 14), AppStrings.all),
                   ),
                   ButtonSegment(
                     value: _HistoryFilter.income,
                     label: Text(
-                      style: TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 14),
                       AppStrings.income,
                     ),
                   ),
                   ButtonSegment(
                     value: _HistoryFilter.expense,
                     label: Text(
-                      style: TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 14),
                       AppStrings.expense,
                     ),
                   ),
@@ -94,6 +95,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                         date: entry.date,
                         transactions: entry.transactions,
                         onDelete: _confirmDelete,
+                        onTap: _showTransactionDetail,
                       );
                     },
                   );
@@ -135,6 +137,25 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     return list;
   }
 
+  void _showTransactionDetail(Transaction tx) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => _TransactionDetailSheet(
+        transaction: tx,
+        onDelete: () async {
+          Navigator.of(context).pop();
+          await _confirmDelete(tx);
+        },
+      ),
+    );
+  }
+
   Future<void> _confirmDelete(Transaction tx) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -162,6 +183,205 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Detail Bottom Sheet
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TransactionDetailSheet extends StatelessWidget {
+  final Transaction transaction;
+  final VoidCallback onDelete;
+
+  const _TransactionDetailSheet({
+    required this.transaction,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final fg = isDark ? AppColors.white : AppColors.black;
+    final surfaceAlt = isDark ? AppColors.darkSurfaceAlt : AppColors.lightSurface;
+    final cat = categoryById(transaction.categoryId);
+    final isIncome = transaction.type == TransactionType.income;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Icon + category + type badge
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: surfaceAlt,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
+            child: HugeIcon(icon: cat.icon, color: fg, size: 36),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            cat.label,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: fg,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: surfaceAlt,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              isIncome ? AppStrings.income : AppStrings.expense,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.secondary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Amount
+          Text(
+            '${isIncome ? '+' : '-'} ${formatRupiah(transaction.amount)}',
+            style: TextStyle(
+              fontSize: 36,
+              fontWeight: FontWeight.bold,
+              color: fg,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Detail rows
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              children: [
+                _DetailRow(
+                  icon: HugeIcons.strokeRoundedCalendar01,
+                  label: AppStrings.date,
+                  value: DateHelper.formatFullDate(transaction.date),
+                  fg: fg,
+                ),
+                const Divider(height: 1, indent: 52),
+                _DetailRow(
+                  icon: HugeIcons.strokeRoundedNote01,
+                  label: AppStrings.notes,
+                  value: transaction.notes?.isNotEmpty == true
+                      ? transaction.notes!
+                      : '—',
+                  fg: fg,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Delete button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton.icon(
+              onPressed: onDelete,
+              icon: const HugeIcon(
+                icon: HugeIcons.strokeRoundedDelete01,
+                color: Colors.red,
+                size: 18,
+              ),
+              label: const Text(
+                AppStrings.delete,
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.red, width: 1.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final List<List<dynamic>> icon;
+  final String label;
+  final String value;
+  final Color fg;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.fg,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          HugeIcon(icon: icon, color: AppColors.secondary, size: 20),
+          const SizedBox(width: 16),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.secondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: fg,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Day grouping helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _DayGroup {
   final DateTime date;
   final List<Transaction> transactions;
@@ -172,11 +392,13 @@ class _DaySection extends StatelessWidget {
   final DateTime date;
   final List<Transaction> transactions;
   final Future<void> Function(Transaction tx) onDelete;
+  final void Function(Transaction tx) onTap;
 
   const _DaySection({
     required this.date,
     required this.transactions,
     required this.onDelete,
+    required this.onTap,
   });
 
   int get _dayTotal {
@@ -249,7 +471,10 @@ class _DaySection extends StatelessWidget {
                         size: 24,
                       ),
                     ),
-                    child: TransactionItem(transaction: transactions[i]),
+                    child: TransactionItem(
+                      transaction: transactions[i],
+                      onTap: () => onTap(transactions[i]),
+                    ),
                   ),
                   if (i < transactions.length - 1)
                     const Divider(indent: 56, height: 1),
