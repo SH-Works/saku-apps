@@ -1,0 +1,487 @@
+---
+description: Transfer Between Wallets feature for Saku app. Apply when working on wallet transfer functionality.
+globs: lib/features/wallets/**, lib/features/transfer/**
+alwaysApply: false
+---
+
+# Feature — Transfer Between Wallets
+
+## Overview
+Users can transfer balance from one wallet to another.
+Transfer is NOT counted as income or expense — it only moves balance.
+Transfer has its own history list separate from transactions.
+Requires Multiple Wallets feature to be implemented first.
+
+---
+
+## Transfer Entity — wallet_transfer.dart
+```dart
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'wallet_transfer.freezed.dart';
+
+@freezed
+class WalletTransfer with _$WalletTransfer {
+  const factory WalletTransfer({
+    required String id,
+    required String fromWalletId,
+    required String toWalletId,
+    required int amount,           // in IDR, must be > 0
+    required DateTime date,
+    String? notes,
+    required DateTime createdAt,
+  }) = _WalletTransfer;
+}
+```
+
+---
+
+## Hive Model — wallet_transfer_model.dart
+```dart
+import 'package:hive/hive.dart';
+part 'wallet_transfer_model.g.dart';
+
+@HiveType(typeId: 4)
+class WalletTransferModel extends HiveObject {
+  @HiveField(0) late String id;
+  @HiveField(1) late String fromWalletId;
+  @HiveField(2) late String toWalletId;
+  @HiveField(3) late int amount;
+  @HiveField(4) late DateTime date;
+  @HiveField(5) String? notes;
+  @HiveField(6) late DateTime createdAt;
+
+  WalletTransfer toEntity() => WalletTransfer(
+    id: id,
+    fromWalletId: fromWalletId,
+    toWalletId: toWalletId,
+    amount: amount,
+    date: date,
+    notes: notes,
+    createdAt: createdAt,
+  );
+
+  static WalletTransferModel fromEntity(WalletTransfer t) =>
+    WalletTransferModel()
+      ..id = t.id
+      ..fromWalletId = t.fromWalletId
+      ..toWalletId = t.toWalletId
+      ..amount = t.amount
+      ..date = t.date
+      ..notes = t.notes
+      ..createdAt = t.createdAt;
+}
+```
+
+---
+
+## Hive Box
+```dart
+// Register in main.dart
+Hive.registerAdapter(WalletTransferModelAdapter());
+await Hive.openBox<WalletTransferModel>('wallet_transfers');
+```
+
+---
+
+## Folder Structure
+```
+lib/
+└── features/
+    └── transfer/
+        ├── data/
+        │   ├── datasources/
+        │   │   └── transfer_local_datasource.dart
+        │   ├── models/
+        │   │   └── wallet_transfer_model.dart      # HiveObject typeId: 4
+        │   └── repositories/
+        │       └── transfer_repository_impl.dart
+        │
+        ├── domain/
+        │   ├── entities/
+        │   │   └── wallet_transfer.dart             # Freezed entity
+        │   ├── repositories/
+        │   │   └── transfer_repository.dart         # Abstract class
+        │   └── usecases/
+        │       ├── execute_transfer.dart
+        │       ├── get_all_transfers.dart
+        │       ├── get_transfers_by_wallet.dart
+        │       └── delete_transfer.dart
+        │
+        └── presentation/
+            ├── providers/
+            │   └── transfer_provider.dart
+            ├── pages/
+            │   └── transfer_history_page.dart
+            └── widgets/
+                ├── transfer_sheet.dart              # Bottom sheet modal
+                └── transfer_item.dart               # List item widget
+```
+
+---
+
+## Abstract Repository — transfer_repository.dart
+```dart
+abstract class TransferRepository {
+  Future<List<WalletTransfer>> getAllTransfers();
+  Future<List<WalletTransfer>> getTransfersByWallet(String walletId);
+  Future<void> executeTransfer(WalletTransfer transfer);
+  Future<void> deleteTransfer(String id);
+}
+```
+
+---
+
+## Execute Transfer Use Case — execute_transfer.dart
+```dart
+// Atomically:
+// 1. Validate sufficient balance in fromWallet
+// 2. Deduct amount from fromWallet balance
+// 3. Add amount to toWallet balance
+// 4. Save transfer record to Hive
+
+class ExecuteTransfer {
+  final TransferRepository transferRepo;
+  final WalletRepository walletRepo;
+
+  ExecuteTransfer(this.transferRepo, this.walletRepo);
+
+  Future<void> call(WalletTransfer transfer) async {
+    // Validate source wallet
+    final fromWallet = await walletRepo.getWalletById(transfer.fromWalletId);
+    if (fromWallet == null) throw Exception('Source wallet not found');
+    if (fromWallet.balance < transfer.amount) {
+      throw Exception('Insufficient balance');
+    }
+
+    // Deduct from source wallet
+    await walletRepo.updateWallet(
+      fromWallet.copyWith(balance: fromWallet.balance - transfer.amount),
+    );
+
+    // Add to destination wallet
+    final toWallet = await walletRepo.getWalletById(transfer.toWalletId);
+    if (toWallet == null) throw Exception('Destination wallet not found');
+    await walletRepo.updateWallet(
+      toWallet.copyWith(balance: toWallet.balance + transfer.amount),
+    );
+
+    // Save transfer record
+    await transferRepo.executeTransfer(transfer);
+  }
+}
+```
+
+---
+
+## Delete Transfer Use Case — delete_transfer.dart
+```dart
+// On delete: REVERSE the wallet balances
+// Add amount back to fromWallet, deduct from toWallet
+
+class DeleteTransfer {
+  final TransferRepository transferRepo;
+  final WalletRepository walletRepo;
+
+  DeleteTransfer(this.transferRepo, this.walletRepo);
+
+  Future<void> call(WalletTransfer transfer) async {
+    // Reverse: add back to fromWallet
+    final fromWallet = await walletRepo.getWalletById(transfer.fromWalletId);
+    if (fromWallet != null) {
+      await walletRepo.updateWallet(
+        fromWallet.copyWith(balance: fromWallet.balance + transfer.amount),
+      );
+    }
+
+    // Reverse: deduct from toWallet
+    final toWallet = await walletRepo.getWalletById(transfer.toWalletId);
+    if (toWallet != null) {
+      await walletRepo.updateWallet(
+        toWallet.copyWith(balance: toWallet.balance - transfer.amount),
+      );
+    }
+
+    // Delete transfer record
+    await transferRepo.deleteTransfer(transfer.id);
+  }
+}
+```
+
+---
+
+## Datasource — transfer_local_datasource.dart
+```dart
+class TransferLocalDatasource {
+  final Box<WalletTransferModel> _box;
+  TransferLocalDatasource(this._box);
+
+  Future<List<WalletTransfer>> getAllTransfers() async {
+    return _box.values.map((m) => m.toEntity()).toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  Future<List<WalletTransfer>> getTransfersByWallet(String walletId) async {
+    return _box.values
+        .where((m) =>
+            m.fromWalletId == walletId || m.toWalletId == walletId)
+        .map((m) => m.toEntity())
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  Future<void> saveTransfer(WalletTransfer transfer) async {
+    final model = WalletTransferModel.fromEntity(transfer);
+    await _box.put(transfer.id, model);
+  }
+
+  Future<void> deleteTransfer(String id) async {
+    await _box.delete(id);
+  }
+}
+```
+
+---
+
+## Riverpod Provider — transfer_provider.dart
+```dart
+final transferRepositoryProvider = Provider<TransferRepository>((ref) {
+  final box = Hive.box<WalletTransferModel>('wallet_transfers');
+  final datasource = TransferLocalDatasource(box);
+  return TransferRepositoryImpl(datasource);
+});
+
+final executeTransferProvider = Provider<ExecuteTransfer>((ref) {
+  return ExecuteTransfer(
+    ref.read(transferRepositoryProvider),
+    ref.read(walletRepositoryProvider),
+  );
+});
+
+final deleteTransferProvider = Provider<DeleteTransfer>((ref) {
+  return DeleteTransfer(
+    ref.read(transferRepositoryProvider),
+    ref.read(walletRepositoryProvider),
+  );
+});
+
+final allTransfersProvider = FutureProvider<List<WalletTransfer>>((ref) async {
+  return ref.read(transferRepositoryProvider).getAllTransfers();
+});
+
+final transfersByWalletProvider =
+    FutureProvider.family<List<WalletTransfer>, String>((ref, walletId) async {
+  return ref.read(transferRepositoryProvider).getTransfersByWallet(walletId);
+});
+```
+
+---
+
+## Screen Specifications
+
+### transfer_sheet.dart — Bottom Sheet Modal
+```
+Triggered from:
+- Home FAB long press → SpeedDial options: "Add Transaction" | "Transfer"
+- Wallet Detail page → "Transfer ⇄" button
+
+Layout (showModalBottomSheet, isScrollControlled: true):
+- Handle bar at top (gray pill, centered)
+- Title row: "Transfer" (bold 20px, left) | close icon (right)
+- Divider
+
+- FROM section:
+  - Label: "From" (small gray uppercase)
+  - WalletPickerTile: icon + name + balance (formatRupiah)
+  - Tap → show wallet list bottom sheet
+
+- Swap button: centered ⇄ icon button (tap to swap From/To wallets)
+
+- TO section:
+  - Label: "To" (small gray uppercase)
+  - WalletPickerTile: icon + name + balance (formatRupiah)
+  - Tap → show wallet list bottom sheet
+
+- Amount section:
+  - Large centered display: "Rp 0" (40px bold)
+  - Tap → show custom numeric keypad (same as Add Transaction)
+
+- Date row: Icons.calendar_today + formatted date → showDatePicker()
+- Notes: TextField single line, hint "Add notes... (optional)"
+
+- Transfer button: full-width black ElevatedButton "Transfer"
+
+Validation (show inline error below field):
+- fromWallet ≠ toWallet → "Please select different wallets"
+- amount <= 0 → "Please enter an amount"
+- fromWallet.balance < amount → "Insufficient balance in [wallet name]"
+
+On success:
+- Close bottom sheet
+- Show SnackBar: "Transfer successful"
+- Refresh wallet balances
+```
+
+### transfer_history_page.dart
+```
+- AppBar: large title "Transfer History", back button
+- Accessed from Wallet Detail page → "Transfer History"
+- SectionList grouped by date (same pattern as History page)
+  - Section header: date label + daily transfer total
+  - Each row: TransferItem widget
+- Swipe to delete:
+  - Show confirmation dialog: "Undo this transfer? Wallet balances will be reversed."
+  - On confirm: call DeleteTransfer use case (reverses balances)
+- Empty state: Icons.swap_horiz_outlined + "No transfers yet"
+```
+
+### transfer_item.dart — List Item Widget
+```dart
+TransferItem({
+  required WalletTransfer transfer,
+  required Wallet fromWallet,
+  required Wallet toWallet,
+  VoidCallback? onDelete,
+})
+
+// Layout:
+// Left icon:   ⇄ (swap icon, gray circle background)
+// Middle top:  "[fromWallet.icon] [fromWallet.name]  →  [toWallet.icon] [toWallet.name]"
+// Middle bot:  date string + notes preview (if any, gray, small)
+// Right:       "Rp x.xxx.xxx" (bold black)
+//              "Transfer" badge (small gray pill)
+```
+
+---
+
+## Wallet Detail Page Updates
+```dart
+// Add to wallet_detail_page.dart AppBar actions:
+IconButton(
+  icon: const Icon(Icons.swap_horiz),
+  onPressed: () => showModalBottomSheet(context: context,
+    builder: (_) => TransferSheet(defaultFromWalletId: wallet.id)),
+)
+
+// Add Transfer History section below transaction list:
+ListTile(
+  title: const Text('Transfer History'),
+  trailing: const Icon(Icons.chevron_right),
+  onTap: () => context.push('/transfers?walletId=${wallet.id}'),
+)
+```
+
+---
+
+## History Page Updates
+```dart
+// Update SegmentedButton to include Transfer tab:
+SegmentedButton<String>(
+  segments: const [
+    ButtonSegment(value: 'all',      label: Text('All')),
+    ButtonSegment(value: 'income',   label: Text('Income')),
+    ButtonSegment(value: 'expense',  label: Text('Expense')),
+    ButtonSegment(value: 'transfer', label: Text('Transfer')), // ← ADD
+  ],
+  ...
+)
+// When 'transfer' selected: show TransferItem list for current month
+```
+
+---
+
+## Home Page Updates
+```dart
+// Update FAB from simple to SpeedDial on long press:
+FloatingActionButton(
+  onPressed: () => showModalBottomSheet(...AddTransactionSheet...),
+  onLongPress: () => _showSpeedDial(context),
+  child: const Icon(Icons.add),
+)
+
+void _showSpeedDial(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    builder: (_) => Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.add_circle_outline),
+          title: const Text('Add Transaction'),
+          onTap: () { Navigator.pop(context); /* open add transaction */ },
+        ),
+        ListTile(
+          leading: const Icon(Icons.swap_horiz),
+          title: const Text('Transfer'),
+          onTap: () { Navigator.pop(context); /* open transfer sheet */ },
+        ),
+      ],
+    ),
+  );
+}
+```
+
+---
+
+## router.dart Updates
+```dart
+GoRoute(
+  path: '/transfers',
+  builder: (context, state) {
+    final walletId = state.uri.queryParameters['walletId'];
+    return TransferHistoryPage(walletId: walletId);
+  },
+),
+```
+
+---
+
+## main.dart Updates
+```dart
+Hive.registerAdapter(WalletTransferModelAdapter());
+await Hive.openBox<WalletTransferModel>('wallet_transfers');
+```
+
+---
+
+## Design Rules
+- Transfer icon: Icons.swap_horiz or ⇄ symbol
+- Amount display: black (neutral — not income/expense)
+- "Transfer" badge: gray pill (#E0E0E0 bg, #000000 text)
+- Insufficient balance error: red-style BUT use dark gray (#3A3A3A) — no colors
+- Swap button: gray circle background, black icon
+- Success SnackBar: black background, white text
+- All components: monochrome only, no colors
+
+---
+
+## Cursor Prompt to Implement This Feature
+```
+@feature-transfer.mdc @feature-wallets.mdc @.cursorrules
+
+Implement the Transfer Between Wallets feature.
+Prerequisite: Multiple Wallets feature must already be implemented.
+
+Steps:
+1. Create wallet_transfer.dart (Freezed entity)
+2. Create wallet_transfer_model.dart (Hive typeId: 4)
+3. Create transfer_local_datasource.dart
+4. Create transfer_repository.dart (abstract)
+5. Create transfer_repository_impl.dart
+6. Create execute_transfer.dart use case (with balance validation)
+7. Create delete_transfer.dart use case (reverses balances on delete)
+8. Create get_all_transfers.dart and get_transfers_by_wallet.dart use cases
+9. Create transfer_provider.dart (Riverpod)
+10. Create transfer_sheet.dart (bottom sheet modal)
+11. Create transfer_item.dart widget
+12. Create transfer_history_page.dart
+13. Update wallet_detail_page.dart (add transfer button + history section)
+14. Update history_page.dart (add Transfer tab to SegmentedButton)
+15. Update home_page.dart (FAB long press → SpeedDial)
+16. Update router.dart (add /transfers route)
+17. Update main.dart (register WalletTransferModelAdapter, open box)
+18. Run build_runner
+
+Follow clean architecture strictly.
+Black & white design only — no colors.
+Show each file before writing for confirmation.
+```
