@@ -1,0 +1,156 @@
+---
+description: Multiple Wallets feature for Saku app. Apply when working on wallet functionality.
+globs: lib/features/wallets/**
+alwaysApply: false
+---
+
+# Feature — Multiple Wallets
+
+## Overview
+Users can create multiple wallets (Cash, BCA, OVO, GoPay, etc).
+Each transaction is linked to a wallet.
+Transfer between wallets is recorded but NOT counted as expense or income.
+
+## Wallet Entity — wallet.dart
+```dart
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'wallet.freezed.dart';
+
+@freezed
+class Wallet with _$Wallet {
+  const factory Wallet({
+    required String id,
+    required String name,
+    required String icon,        // emoji icon e.g. '💵', '🏦', '📱'
+    required int balance,        // current balance in IDR
+    required bool isDefault,     // only one wallet can be default
+    required DateTime createdAt,
+  }) = _Wallet;
+}
+```
+
+## Hive Model — wallet_model.dart
+```dart
+@HiveType(typeId: 1)
+class WalletModel extends HiveObject {
+  @HiveField(0) late String id;
+  @HiveField(1) late String name;
+  @HiveField(2) late String icon;
+  @HiveField(3) late int balance;
+  @HiveField(4) late bool isDefault;
+  @HiveField(5) late DateTime createdAt;
+}
+```
+
+## Update Transaction Entity
+```dart
+// Add walletId to Transaction entity
+@freezed
+class Transaction with _$Transaction {
+  const factory Transaction({
+    required String id,
+    required TransactionType type,
+    required int amount,
+    required String categoryId,
+    required String walletId,    // ← ADD THIS
+    required DateTime date,
+    String? notes,
+    required DateTime createdAt,
+  }) = _Transaction;
+}
+```
+
+## Transfer Entity
+```dart
+// Transfer is NOT a Transaction — it's a separate entity
+@freezed
+class WalletTransfer with _$WalletTransfer {
+  const factory WalletTransfer({
+    required String id,
+    required String fromWalletId,
+    required String toWalletId,
+    required int amount,
+    required DateTime date,
+    String? notes,
+    required DateTime createdAt,
+  }) = _WalletTransfer;
+}
+```
+
+## Abstract Repository — wallet_repository.dart
+```dart
+abstract class WalletRepository {
+  Future<List<Wallet>> getAllWallets();
+  Future<Wallet?> getDefaultWallet();
+  Future<void> addWallet(Wallet wallet);
+  Future<void> updateWallet(Wallet wallet);
+  Future<void> deleteWallet(String id);
+  Future<void> setDefaultWallet(String id);
+  Future<void> transferBetweenWallets(WalletTransfer transfer);
+  Future<int> getWalletBalance(String walletId);
+}
+```
+
+## Predefined Wallet Templates
+```dart
+const List<Map<String, String>> kWalletTemplates = [
+  {'name': 'Cash',      'icon': '💵'},
+  {'name': 'BCA',       'icon': '🏦'},
+  {'name': 'Mandiri',   'icon': '🏦'},
+  {'name': 'BNI',       'icon': '🏦'},
+  {'name': 'BRI',       'icon': '🏦'},
+  {'name': 'OVO',       'icon': '📱'},
+  {'name': 'GoPay',     'icon': '📱'},
+  {'name': 'Dana',      'icon': '📱'},
+  {'name': 'ShopeePay', 'icon': '📱'},
+  {'name': 'Custom',    'icon': '👛'},
+];
+```
+
+## Screen Specifications
+
+### wallets_page.dart
+- Accessed from Settings or Home AppBar wallet selector
+- AppBar: large title "Wallets"
+- List of wallet cards: name, icon, balance (formatRupiah)
+- Default wallet shows black checkmark badge
+- FAB: "+" → add_wallet_page.dart
+- Tap wallet → wallet_detail_page.dart
+- Swipe to delete (cannot delete default wallet)
+- Total balance row at top: sum of all wallets
+
+### add_wallet_page.dart
+- Modal bottom sheet
+- Wallet name: TextField
+- Icon picker: horizontal scroll of emoji options
+- Initial balance: numeric input (formatRupiah)
+- Set as default: iOS Toggle
+- Save button: full-width black ElevatedButton
+
+### wallet_detail_page.dart
+- AppBar: wallet name + edit icon
+- Balance card: large formatRupiah amount
+- Transaction list filtered by this wallet
+- Transfer button: "Transfer ⇄" → transfer_sheet.dart
+
+### transfer_sheet.dart (bottom sheet)
+- Title: "Transfer Between Wallets"
+- From wallet: dropdown/picker (current wallet pre-selected)
+- To wallet: dropdown/picker
+- Amount: numeric input
+- Notes: optional TextField
+- Confirm button: full-width black "Transfer"
+- Validation: from ≠ to, amount > 0, sufficient balance
+
+## Home Page Updates
+- Add wallet selector chip row below balance card
+- Chips: "All", then each wallet name
+- Selected chip: black background, white text
+- Unselected: gray border, black text
+- Balance card updates based on selected wallet
+
+## Add Transaction Page Updates
+- Add wallet picker below category grid
+- Default: user's default wallet pre-selected
+- Shows wallet icon + name
+- Tap to change → shows wallet list bottom sheet

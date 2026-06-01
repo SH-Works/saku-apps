@@ -1,0 +1,145 @@
+---
+description: Phase 2 Core++ features overview for Saku app. Apply when building any Phase 2 feature.
+globs: lib/features/search/**, lib/features/wallets/**, lib/features/recurring/**, lib/features/budget/**
+alwaysApply: false
+---
+
+# Phase 2 — Core++ Features Overview
+
+## Features in this phase
+1. Search Transaction
+2. Multiple Wallets
+3. Recurring Transaction
+4. Budget Planner
+
+## New Folder Structure (Phase 2 additions)
+```
+lib/
+└── features/
+    ├── search/
+    │   └── presentation/
+    │       ├── pages/
+    │       │   └── search_page.dart
+    │       └── widgets/
+    │           └── search_bar_widget.dart
+    │
+    ├── wallets/
+    │   ├── data/
+    │   │   ├── datasources/
+    │   │   │   └── wallet_local_datasource.dart
+    │   │   ├── models/
+    │   │   │   └── wallet_model.dart
+    │   │   └── repositories/
+    │   │       └── wallet_repository_impl.dart
+    │   ├── domain/
+    │   │   ├── entities/
+    │   │   │   └── wallet.dart
+    │   │   ├── repositories/
+    │   │   │   └── wallet_repository.dart
+    │   │   └── usecases/
+    │   │       ├── add_wallet.dart
+    │   │       ├── delete_wallet.dart
+    │   │       ├── get_all_wallets.dart
+    │   │       ├── transfer_between_wallets.dart
+    │   │       └── get_wallet_balance.dart
+    │   └── presentation/
+    │       ├── providers/
+    │       │   └── wallet_provider.dart
+    │       ├── pages/
+    │       │   ├── wallets_page.dart
+    │       │   ├── add_wallet_page.dart
+    │       │   └── wallet_detail_page.dart
+    │       └── widgets/
+    │           ├── wallet_card.dart
+    │           └── transfer_sheet.dart
+    │
+    ├── recurring/
+    │   ├── data/
+    │   │   ├── datasources/
+    │   │   │   └── recurring_local_datasource.dart
+    │   │   ├── models/
+    │   │   │   └── recurring_model.dart
+    │   │   └── repositories/
+    │   │       └── recurring_repository_impl.dart
+    │   ├── domain/
+    │   │   ├── entities/
+    │   │   │   └── recurring_transaction.dart
+    │   │   ├── repositories/
+    │   │   │   └── recurring_repository.dart
+    │   │   └── usecases/
+    │   │       ├── add_recurring.dart
+    │   │       ├── delete_recurring.dart
+    │   │       ├── get_all_recurring.dart
+    │   │       └── process_due_recurring.dart
+    │   └── presentation/
+    │       ├── providers/
+    │       │   └── recurring_provider.dart
+    │       ├── pages/
+    │       │   ├── recurring_page.dart
+    │       │   └── add_recurring_page.dart
+    │       └── widgets/
+    │           └── recurring_item.dart
+    │
+    └── budget/
+        ├── data/
+        │   ├── datasources/
+        │   │   └── budget_local_datasource.dart
+        │   ├── models/
+        │   │   └── budget_model.dart
+        │   └── repositories/
+        │       └── budget_repository_impl.dart
+        ├── domain/
+        │   ├── entities/
+        │   │   └── budget.dart
+        │   ├── repositories/
+        │   │   └── budget_repository.dart
+        │   └── usecases/
+        │       ├── add_budget.dart
+        │       ├── delete_budget.dart
+        │       ├── get_budgets_by_month.dart
+        │       └── get_budget_progress.dart
+        └── presentation/
+            ├── providers/
+            │   └── budget_provider.dart
+            ├── pages/
+            │   ├── budget_page.dart
+            │   └── add_budget_page.dart
+            └── widgets/
+                ├── budget_progress_card.dart
+                └── budget_alert_banner.dart
+```
+
+## New Hive Box Names
+```dart
+await Hive.openBox<WalletModel>('wallets');
+await Hive.openBox<RecurringModel>('recurring');
+await Hive.openBox<BudgetModel>('budgets');
+```
+
+## New Hive TypeIds
+```dart
+// TransactionModel → typeId: 0 (existing)
+// WalletModel      → typeId: 1
+// RecurringModel   → typeId: 2
+// BudgetModel      → typeId: 3
+```
+
+## Updated router.dart (add Phase 2 routes)
+```dart
+GoRoute(path: '/search',           builder: (_, __) => const SearchPage()),
+GoRoute(path: '/wallets',          builder: (_, __) => const WalletsPage()),
+GoRoute(path: '/wallets/add',      builder: (_, __) => const AddWalletPage()),
+GoRoute(path: '/wallets/:id',      builder: (_, s)  => WalletDetailPage(id: s.pathParameters['id']!)),
+GoRoute(path: '/recurring',        builder: (_, __) => const RecurringPage()),
+GoRoute(path: '/recurring/add',    builder: (_, __) => const AddRecurringPage()),
+GoRoute(path: '/budget',           builder: (_, __) => const BudgetPage()),
+GoRoute(path: '/budget/add',       builder: (_, __) => const AddBudgetPage()),
+```
+
+## Phase 2 Implementation Order
+1. feature-wallets → wallet entity, model, datasource, repo, usecases, provider, UI
+2. feature-search → search page + filter logic (reuses transaction provider)
+3. feature-recurring → recurring entity, model, scheduler logic, UI
+4. feature-budget → budget entity, model, progress logic, alert banner, UI
+5. Update Home page to show wallet selector + budget alert banner
+6. Update Add Transaction page to include wallet selector

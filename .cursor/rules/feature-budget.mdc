@@ -1,0 +1,170 @@
+---
+description: Budget Planner feature for Saku app. Apply when working on budget functionality.
+globs: lib/features/budget/**
+alwaysApply: false
+---
+
+# Feature — Budget Planner
+
+## Overview
+Users can set a spending limit per category per month.
+Progress bar shows how much of the budget has been used.
+Alert banner appears on Home when a budget is >= 80% used.
+Notification triggered when budget reaches 100%.
+
+## Budget Entity — budget.dart
+```dart
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'budget.freezed.dart';
+
+@freezed
+class Budget with _$Budget {
+  const factory Budget({
+    required String id,
+    required String categoryId,
+    required int limitAmount,      // budget limit in IDR
+    required int month,            // 1-12
+    required int year,
+    required DateTime createdAt,
+  }) = _Budget;
+}
+
+// Budget Progress — computed, not stored
+class BudgetProgress {
+  final Budget budget;
+  final int spentAmount;
+  final int remainingAmount;
+  final double percentage;         // 0.0 to 1.0+
+  final bool isWarning;            // >= 80%
+  final bool isExceeded;           // >= 100%
+
+  BudgetProgress({
+    required this.budget,
+    required this.spentAmount,
+  }) : remainingAmount = budget.limitAmount - spentAmount,
+       percentage = spentAmount / budget.limitAmount,
+       isWarning = spentAmount / budget.limitAmount >= 0.8,
+       isExceeded = spentAmount >= budget.limitAmount;
+}
+```
+
+## Hive Model — budget_model.dart
+```dart
+@HiveType(typeId: 3)
+class BudgetModel extends HiveObject {
+  @HiveField(0) late String id;
+  @HiveField(1) late String categoryId;
+  @HiveField(2) late int limitAmount;
+  @HiveField(3) late int month;
+  @HiveField(4) late int year;
+  @HiveField(5) late DateTime createdAt;
+}
+```
+
+## Abstract Repository — budget_repository.dart
+```dart
+abstract class BudgetRepository {
+  Future<List<Budget>> getBudgetsByMonth(int year, int month);
+  Future<Budget?> getBudgetByCategory(String categoryId, int year, int month);
+  Future<void> addBudget(Budget budget);
+  Future<void> updateBudget(Budget budget);
+  Future<void> deleteBudget(String id);
+  Future<List<BudgetProgress>> getBudgetProgress(int year, int month);
+  // Calculates spent amount by joining with transactions
+}
+```
+
+## Get Budget Progress Use Case
+```dart
+class GetBudgetProgress {
+  final BudgetRepository budgetRepo;
+  final TransactionRepository transactionRepo;
+
+  GetBudgetProgress(this.budgetRepo, this.transactionRepo);
+
+  Future<List<BudgetProgress>> call(int year, int month) async {
+    final budgets = await budgetRepo.getBudgetsByMonth(year, month);
+    final transactions = await transactionRepo.getTransactionsByMonth(year, month);
+
+    return budgets.map((budget) {
+      final spent = transactions
+          .where((tx) =>
+              tx.type == TransactionType.expense &&
+              tx.categoryId == budget.categoryId)
+          .fold(0, (sum, tx) => sum + tx.amount);
+
+      return BudgetProgress(budget: budget, spentAmount: spent);
+    }).toList();
+  }
+}
+```
+
+## Screen Specifications
+
+### budget_page.dart
+- Accessed from Home screen or Settings
+- AppBar: large title "Budget"
+- MonthSelector at top (same widget as History/Report)
+- List of BudgetProgressCard widgets per category
+- Total budget summary at top: total limit vs total spent
+- FAB: "+" → add_budget_page.dart
+- Empty state: "No budgets set for this month" + "Set Budget" button
+- Swipe to delete budget
+
+### add_budget_page.dart
+- Modal bottom sheet
+- Category picker: same grid (only expense categories shown)
+- Budget limit: numeric input (formatRupiah)
+- Month: pre-selected as current month (can change)
+- Save button: full-width black ElevatedButton
+- Validation: cannot add duplicate category for same month
+
+### budget_progress_card.dart Widget
+```dart
+BudgetProgressCard({
+  required BudgetProgress progress,
+  required VoidCallback onDelete,
+})
+```
+Layout:
+- Row: category icon + label (left) | spent / limit amounts (right)
+- LinearProgressIndicator below:
+  - Normal (< 80%):  black fill, gray track
+  - Warning (>= 80%): dark gray fill, gray track
+  - Exceeded (100%+): black fill with striped pattern
+- Percentage text: right-aligned below bar
+- If exceeded: show "Over budget" label in dark gray
+
+### budget_alert_banner.dart Widget
+```dart
+// Shown on Home page when any budget >= 80%
+BudgetAlertBanner({
+  required List<BudgetProgress> warnings,
+  required VoidCallback onTap,
+})
+```
+- Black background, white text
+- Text: "⚠ 2 budgets are near limit" (or "exceeded")
+- Tap → navigate to budget_page.dart
+- Dismissible (user can close)
+- Only shown when there are warnings
+
+## Home Page Updates
+- Add BudgetAlertBanner below balance card (when warnings exist)
+- Budget summary row: "This month: Rp x / Rp y budgeted"
+
+## Report Page Updates
+- Add budget vs actual comparison section
+- Each category row shows: spent bar + budget limit marker line
+
+## Notification Rules
+- Use flutter_local_notifications package
+- Trigger when budget reaches exactly 80% → "⚠ [Category] budget is 80% used"
+- Trigger when budget reaches 100% → "🚫 [Category] budget exceeded!"
+- Only trigger once per threshold per month (store triggered state in Hive)
+
+## pubspec.yaml additions
+```yaml
+dependencies:
+  flutter_local_notifications: ^17.0.0
+```

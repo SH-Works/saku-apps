@@ -4,15 +4,18 @@
 
 import 'package:hive_ce/hive.dart';
 import 'package:saku_apps/features/transaction/data/models/transaction_model.dart';
+import 'package:saku_apps/features/wallets/data/models/wallet_model.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
     registerAdapter(TransactionModelAdapter());
+    registerAdapter(WalletModelAdapter());
   }
 }
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
     registerAdapter(TransactionModelAdapter());
+    registerAdapter(WalletModelAdapter());
   }
 }

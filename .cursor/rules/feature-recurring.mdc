@@ -1,0 +1,174 @@
+---
+description: Recurring Transaction feature for Saku app. Apply when working on recurring/scheduled transactions.
+globs: lib/features/recurring/**
+alwaysApply: false
+---
+
+# Feature — Recurring Transaction
+
+## Overview
+Users can set up transactions that repeat automatically on a schedule.
+Examples: monthly salary, Netflix subscription, rent, loan installment.
+On app launch, check for due recurring transactions and auto-add them.
+
+## Recurring Entity — recurring_transaction.dart
+```dart
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'recurring_transaction.freezed.dart';
+
+enum RecurringFrequency { daily, weekly, monthly, yearly }
+
+@freezed
+class RecurringTransaction with _$RecurringTransaction {
+  const factory RecurringTransaction({
+    required String id,
+    required TransactionType type,
+    required int amount,
+    required String categoryId,
+    required String walletId,
+    required RecurringFrequency frequency,
+    required int dayOfMonth,       // 1-31, used for monthly/yearly
+    required DateTime startDate,
+    DateTime? endDate,             // null = no end date
+    DateTime? lastProcessedDate,   // last time this was auto-added
+    required bool isActive,
+    String? notes,
+    required String label,         // e.g. "Netflix", "Gaji Bulanan"
+    required DateTime createdAt,
+  }) = _RecurringTransaction;
+}
+```
+
+## Hive Model — recurring_model.dart
+```dart
+@HiveType(typeId: 2)
+class RecurringModel extends HiveObject {
+  @HiveField(0)  late String id;
+  @HiveField(1)  late String type;
+  @HiveField(2)  late int amount;
+  @HiveField(3)  late String categoryId;
+  @HiveField(4)  late String walletId;
+  @HiveField(5)  late String frequency;
+  @HiveField(6)  late int dayOfMonth;
+  @HiveField(7)  late DateTime startDate;
+  @HiveField(8)  DateTime? endDate;
+  @HiveField(9)  DateTime? lastProcessedDate;
+  @HiveField(10) late bool isActive;
+  @HiveField(11) String? notes;
+  @HiveField(12) late String label;
+  @HiveField(13) late DateTime createdAt;
+}
+```
+
+## Abstract Repository — recurring_repository.dart
+```dart
+abstract class RecurringRepository {
+  Future<List<RecurringTransaction>> getAllRecurring();
+  Future<void> addRecurring(RecurringTransaction recurring);
+  Future<void> updateRecurring(RecurringTransaction recurring);
+  Future<void> deleteRecurring(String id);
+  Future<void> toggleActive(String id);
+  Future<List<RecurringTransaction>> getDueRecurring(DateTime now);
+  Future<void> markAsProcessed(String id, DateTime processedDate);
+}
+```
+
+## Process Due Recurring Use Case — process_due_recurring.dart
+```dart
+// Called on every app launch in main.dart or app.dart
+// Checks all active recurring transactions and auto-adds overdue ones
+
+class ProcessDueRecurring {
+  final RecurringRepository recurringRepo;
+  final TransactionRepository transactionRepo;
+
+  ProcessDueRecurring(this.recurringRepo, this.transactionRepo);
+
+  Future<void> call() async {
+    final now = DateTime.now();
+    final due = await recurringRepo.getDueRecurring(now);
+
+    for (final r in due) {
+      // Create actual transaction from recurring template
+      final tx = Transaction(
+        id: const Uuid().v4(),
+        type: r.type,
+        amount: r.amount,
+        categoryId: r.categoryId,
+        walletId: r.walletId,
+        date: now,
+        notes: r.notes ?? r.label,
+        createdAt: now,
+      );
+      await transactionRepo.addTransaction(tx);
+      await recurringRepo.markAsProcessed(r.id, now);
+    }
+  }
+}
+```
+
+## Call on App Launch — app.dart
+```dart
+// In app.dart initState or router redirect
+ref.read(processDueRecurringProvider).call();
+```
+
+## Screen Specifications
+
+### recurring_page.dart
+- Accessed from Settings screen → "Recurring Transactions"
+- AppBar: large title "Recurring"
+- List of recurring items using RecurringItem widget
+- Each item: label, frequency badge, amount, next due date, active toggle
+- FAB: "+" → add_recurring_page.dart
+- Swipe to delete with confirmation dialog
+- Empty state: "No recurring transactions set up"
+
+### add_recurring_page.dart
+- Modal bottom sheet (isScrollControlled: true)
+- Label: TextField (e.g. "Netflix", "Gaji")
+- Type: SegmentedButton Expense | Income
+- Amount: numeric input (formatRupiah)
+- Category picker: same grid as Add Transaction
+- Wallet picker: same as Add Transaction
+- Frequency: SegmentedButton Daily | Weekly | Monthly | Yearly
+- Day of month: number picker (shown only for Monthly/Yearly)
+- Start date: DatePicker
+- End date: DatePicker (optional, toggle to enable)
+- Save button: full-width black ElevatedButton
+
+### recurring_item.dart Widget
+```dart
+RecurringItem({
+  required RecurringTransaction recurring,
+  required VoidCallback onToggle,
+  required VoidCallback onDelete,
+})
+// Shows: emoji icon, label, frequency chip, amount, next due date
+// Right side: iOS toggle for active/inactive
+```
+
+## Frequency Badge Colors (monochrome)
+```dart
+// All badges black text on gray background
+// Daily:   #E0E0E0 background
+// Weekly:  #D0D0D0 background
+// Monthly: #C0C0C0 background
+// Yearly:  #A0A0A0 background
+```
+
+## Next Due Date Calculation
+```dart
+DateTime getNextDueDate(RecurringTransaction r, DateTime now) {
+  switch (r.frequency) {
+    case RecurringFrequency.daily:
+      return now.add(const Duration(days: 1));
+    case RecurringFrequency.weekly:
+      return now.add(const Duration(days: 7));
+    case RecurringFrequency.monthly:
+      return DateTime(now.year, now.month + 1, r.dayOfMonth);
+    case RecurringFrequency.yearly:
+      return DateTime(now.year + 1, r.startDate.month, r.dayOfMonth);
+  }
+}
+```

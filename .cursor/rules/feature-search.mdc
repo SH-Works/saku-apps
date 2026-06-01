@@ -1,0 +1,87 @@
+---
+description: Search Transaction feature for Saku app. Apply when working on search functionality.
+globs: lib/features/search/**
+alwaysApply: false
+---
+
+# Feature — Search Transaction
+
+## Overview
+Full-text search across all transactions by amount, notes, and category.
+Accessed via search icon on Home AppBar or History AppBar.
+
+## No new data layer needed
+Search reuses existing `TransactionRepository` and `transaction_provider.dart`.
+Add a `searchTransactions(String query)` method to the existing repository.
+
+## Update Existing Repository
+```dart
+// Add to transaction_repository.dart (abstract)
+Future<List<Transaction>> searchTransactions(String query);
+
+// Add to transaction_repository_impl.dart
+Future<List<Transaction>> searchTransactions(String query) async {
+  final all = await datasource.getAllTransactions();
+  final q = query.toLowerCase();
+  return all.where((tx) {
+    final category = kCategories.firstWhere((c) => c.id == tx.categoryId);
+    return category.label.toLowerCase().contains(q) ||
+           (tx.notes?.toLowerCase().contains(q) ?? false) ||
+           formatRupiah(tx.amount).contains(q);
+  }).toList();
+}
+```
+
+## Search Provider
+```dart
+// Add to transaction_provider.dart
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+final searchResultsProvider = Provider<List<Transaction>>((ref) {
+  final query = ref.watch(searchQueryProvider);
+  final all = ref.watch(allTransactionsProvider).value ?? [];
+  if (query.isEmpty) return [];
+  final q = query.toLowerCase();
+  return all.where((tx) {
+    final category = kCategories.firstWhere((c) => c.id == tx.categoryId);
+    return category.label.toLowerCase().contains(q) ||
+           (tx.notes?.toLowerCase().contains(q) ?? false) ||
+           formatRupiah(tx.amount).contains(q);
+  }).toList();
+});
+```
+
+## Screen Specification — search_page.dart
+- Full screen pushed page (not a tab)
+- iOS-style search bar at top (autofocus on open)
+- Search bar: rounded, gray background (#F5F5F5), black text
+- Clear button (✕) appears when text is not empty
+- Results: ListView using TransactionItem widget
+- Empty state (no query): show "Search by category, notes, or amount"
+- Empty state (no results): show "No results for '[query]'"
+- Real-time search — filter on every keystroke (debounce 300ms)
+- Each result shows: category icon, label, date, amount, notes preview
+
+## Widget — search_bar_widget.dart
+```dart
+// Reusable search bar widget
+// Used in: SearchPage, optionally in HistoryPage
+SearchBarWidget({
+  required TextEditingController controller,
+  required ValueChanged<String> onChanged,
+  VoidCallback? onClear,
+  String hintText = 'Search transactions...',
+})
+```
+
+## Navigation
+- Home AppBar → search icon → push `/search`
+- History AppBar → search icon → push `/search`
+- Back button closes search and clears query
+
+## Design Rules
+- Background: #FFFFFF (light) / #000000 (dark)
+- Search bar background: #F5F5F5 (light) / #1C1C1E (dark)
+- Highlight matched text in results: bold black
+- No colors — monochrome only
+- Keyboard type: text, textInputAction: TextInputAction.search
