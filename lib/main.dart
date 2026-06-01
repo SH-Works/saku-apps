@@ -10,6 +10,10 @@ import 'features/settings/presentation/providers/settings_provider.dart';
 import 'features/transaction/data/datasources/transaction_local_datasource.dart';
 import 'features/transaction/data/models/transaction_model.dart';
 import 'features/transaction/presentation/providers/transaction_provider.dart';
+import 'features/wallets/data/datasources/wallet_local_datasource.dart';
+import 'features/wallets/data/models/wallet_model.dart';
+import 'features/wallets/data/repositories/wallet_repository_impl.dart';
+import 'features/wallets/presentation/providers/wallet_provider.dart';
 import 'hive_registrar.g.dart';
 
 /// Default entry point — runs the development flavor.
@@ -28,11 +32,19 @@ Future<void> bootstrap(Flavor flavor) async {
   await Hive.initFlutter();
   Hive.registerAdapters();
 
-  final txBoxName =
-      '${TransactionLocalDataSourceImpl.boxName}${FlavorConfig.instance.hiveBoxSuffix}';
+  final suffix = FlavorConfig.instance.hiveBoxSuffix;
+
+  final txBoxName = '${TransactionLocalDataSourceImpl.boxName}$suffix';
   final txBox = await Hive.openBox<TransactionModel>(txBoxName);
-  final settingsBox =
-      await Hive.openBox('settings${FlavorConfig.instance.hiveBoxSuffix}');
+
+  final walletBoxName = '${WalletLocalDataSource.boxName}$suffix';
+  final walletBox = await Hive.openBox<WalletModel>(walletBoxName);
+
+  final settingsBox = await Hive.openBox('settings$suffix');
+
+  // Seed the default "Kas" wallet on first launch.
+  final walletRepo = WalletRepositoryImpl(WalletLocalDataSourceImpl(walletBox));
+  await ensureDefaultWallet(walletRepo);
 
   await NotificationService.init();
 
@@ -40,6 +52,7 @@ Future<void> bootstrap(Flavor flavor) async {
     ProviderScope(
       overrides: [
         transactionBoxProvider.overrideWithValue(txBox),
+        walletBoxProvider.overrideWithValue(walletBox),
         settingsBoxProvider.overrideWithValue(settingsBox),
       ],
       child: const SakuApp(),

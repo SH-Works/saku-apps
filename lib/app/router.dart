@@ -6,6 +6,8 @@ import '../features/splash/presentation/pages/splash_page.dart';
 import '../features/transaction/presentation/pages/history_page.dart';
 import '../features/transaction/presentation/pages/home_page.dart';
 import '../features/transaction/presentation/pages/report_page.dart';
+import '../features/wallets/presentation/pages/wallet_detail_page.dart';
+import '../features/wallets/presentation/pages/wallets_page.dart';
 import 'main_shell.dart';
 
 // ignore_for_file: unnecessary_underscores
@@ -17,10 +19,18 @@ final GoRouter appRouter = GoRouter(
       path: '/splash',
       builder: (_, __) => const SplashPage(),
     ),
-    // /home (and shell children) fade in when navigated to from splash
     GoRoute(
       path: '/settings',
       builder: (_, __) => const SettingsPage(),
+    ),
+    GoRoute(
+      path: '/wallets',
+      builder: (_, __) => const WalletsPage(),
+    ),
+    GoRoute(
+      path: '/wallets/:id',
+      builder: (_, state) =>
+          WalletDetailPage(walletId: state.pathParameters['id']!),
     ),
     ShellRoute(
       builder: (context, state, child) => MainShell(child: child),

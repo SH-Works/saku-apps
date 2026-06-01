@@ -79,6 +79,29 @@ class AppStrings {
   static const appVersion = 'Versi Aplikasi';
   static const builtWith = 'Dibuat oleh';
 
+  // Wallet
+  static const wallets = 'Dompet';
+  static const allWallets = 'Semua';
+  static const wallet = 'Dompet';
+  static const walletBalance = 'Saldo Dompet';
+  static const addWallet = 'Tambah Dompet';
+  static const editWallet = 'Edit Dompet';
+  static const walletName = 'Nama Dompet';
+  static const walletNameHint = 'cth. Kas, BCA, Dana';
+  static const walletNameRequired = 'Nama dompet tidak boleh kosong';
+  static const walletIcon = 'Ikon';
+  static const walletInitialBalance = 'Saldo Awal';
+  static const walletInitialBalanceHint =
+      'Saldo sebelum menggunakan aplikasi ini';
+  static const deleteWallet = 'Hapus Dompet';
+  static const deleteWalletConfirm =
+      'Dompet ini akan dihapus. Transaksi yang terhubung tidak akan terhapus.';
+  static const setAsDefault = 'Jadikan Utama';
+  static const noWallets = 'Belum ada dompet';
+  static const noWalletsSubtitle =
+      'Tambahkan dompet untuk mulai mengelola keuangan Anda';
+  static const noTransactionsForWallet = 'Belum ada transaksi di dompet ini';
+
   // Error
   static const errorPrefix = 'Terjadi kesalahan';
   static const failedToSave = 'Gagal menyimpan';

@@ -9,6 +9,8 @@ import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/date_helper.dart';
 import '../../domain/entities/transaction.dart';
+import '../../../../features/wallets/domain/entities/wallet.dart';
+import '../../../../features/wallets/presentation/providers/wallet_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../widgets/amount_input.dart';
 import '../widgets/category_picker.dart';
@@ -24,6 +26,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   TransactionType _type = TransactionType.expense;
   int _amount = 0;
   String? _categoryId;
+  String _walletId = 'default';
   DateTime _date = DateTime.now();
   final TextEditingController _notesController = TextEditingController();
   bool _saving = false;
@@ -62,6 +65,7 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
       type: _type,
       amount: _amount,
       categoryId: _categoryId!,
+      walletId: _walletId,
       date: _date,
       notes: _notesController.text.trim().isEmpty
           ? null
@@ -87,9 +91,27 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Pre-select the default wallet on first build.
+    final wallets = ref.read(getAllWalletsUseCaseProvider).call();
+    if (wallets.isNotEmpty) {
+      final def = wallets.firstWhere(
+        (w) => w.isDefault,
+        orElse: () => wallets.first,
+      );
+      _walletId = def.id;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final fg = isDark ? AppColors.white : AppColors.black;
+    final wallets = ref.watch(walletsStreamProvider).maybeWhen(
+          data: (list) => list,
+          orElse: () => <Wallet>[],
+        );
 
     return DraggableScrollableSheet(
       initialChildSize: 0.95,
@@ -172,6 +194,16 @@ class _AddTransactionPageState extends ConsumerState<AddTransactionPage> {
                       selectedCategoryId: _categoryId,
                       onSelected: (id) => setState(() => _categoryId = id),
                     ),
+                    if (wallets.length > 1) ...[
+                      const SizedBox(height: 20),
+                      _SectionLabel(text: AppStrings.wallet, color: fg),
+                      const SizedBox(height: 8),
+                      _WalletPicker(
+                        wallets: wallets,
+                        selectedId: _walletId,
+                        onSelected: (id) => setState(() => _walletId = id),
+                      ),
+                    ],
                     const SizedBox(height: 20),
                     _SectionLabel(text: AppStrings.date, color: fg),
                     const SizedBox(height: 8),
@@ -260,6 +292,64 @@ class _SectionLabel extends StatelessWidget {
         color: color.withOpacity(0.65),
         letterSpacing: 0.4,
       ),
+    );
+  }
+}
+
+class _WalletPicker extends StatelessWidget {
+  final List<Wallet> wallets;
+  final String selectedId;
+  final ValueChanged<String> onSelected;
+
+  const _WalletPicker({
+    required this.wallets,
+    required this.selectedId,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: wallets.map((w) {
+        final isSelected = w.id == selectedId;
+        return GestureDetector(
+          onTap: () => onSelected(w.id),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isSelected
+                    ? Colors.transparent
+                    : AppColors.secondary.withOpacity(0.25),
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(w.icon, style: const TextStyle(fontSize: 14)),
+                const SizedBox(width: 6),
+                Text(
+                  w.name,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

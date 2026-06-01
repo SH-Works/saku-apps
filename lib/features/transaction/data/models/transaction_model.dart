@@ -27,6 +27,10 @@ class TransactionModel extends HiveObject {
   @HiveField(6)
   late DateTime createdAt;
 
+  /// Nullable for backward-compat: old records without walletId default to 'default'.
+  @HiveField(7)
+  String? walletId;
+
   TransactionModel();
 
   Transaction toEntity() => Transaction(
@@ -36,6 +40,7 @@ class TransactionModel extends HiveObject {
             : TransactionType.expense,
         amount: amount,
         categoryId: categoryId,
+        walletId: walletId ?? 'default',
         date: date,
         notes: notes,
         createdAt: createdAt,
@@ -46,6 +51,7 @@ class TransactionModel extends HiveObject {
     ..type = tx.type.name
     ..amount = tx.amount
     ..categoryId = tx.categoryId
+    ..walletId = tx.walletId
     ..date = tx.date
     ..notes = tx.notes
     ..createdAt = tx.createdAt;
