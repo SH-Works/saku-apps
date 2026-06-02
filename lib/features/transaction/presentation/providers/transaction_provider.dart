@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce/hive.dart';
 
+import '../../../../core/constants/categories.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../data/datasources/transaction_local_datasource.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/repositories/transaction_repository_impl.dart';
@@ -120,6 +122,31 @@ final monthSummaryProvider = Provider<TransactionSummary>((ref) {
     },
     orElse: TransactionSummary.empty,
   );
+});
+
+/// Current search query (debounced from [SearchPage]).
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+/// Filtered transactions matching [searchQueryProvider].
+final searchResultsProvider = Provider<List<Transaction>>((ref) {
+  final query = ref.watch(searchQueryProvider).trim();
+  final all = ref.watch(allTransactionsStreamProvider).maybeWhen(
+        data: (list) => list,
+        orElse: () => <Transaction>[],
+      );
+  if (query.isEmpty) return [];
+
+  final q = query.toLowerCase();
+  return all
+      .where((tx) {
+        final category = categoryById(tx.categoryId);
+        return category.label.toLowerCase().contains(q) ||
+            (tx.notes?.toLowerCase().contains(q) ?? false) ||
+            formatRupiah(tx.amount).toLowerCase().contains(q) ||
+            tx.amount.toString().contains(q);
+      })
+      .toList()
+    ..sort((a, b) => b.date.compareTo(a.date));
 });
 
 /// Overall (all-time) summary, useful for the home balance card.
