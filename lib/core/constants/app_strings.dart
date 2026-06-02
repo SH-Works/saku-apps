@@ -35,6 +35,14 @@ class AppStrings {
   static const history = 'Riwayat';
   static const all = 'Semua';
 
+  // Cari
+  static const search = 'Cari';
+  static const searchTransactions = 'Cari Transaksi';
+  static const searchHint = 'Cari transaksi...';
+  static const searchEmptyHint =
+      'Cari berdasarkan kategori, catatan, atau jumlah';
+  static const searchNoResults = 'Tidak ada hasil untuk';
+
   // Laporan
   static const report = 'Laporan';
   static const totalIncome = 'Total Pemasukan';

@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
@@ -32,7 +33,20 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
     final monthTxsAsync = ref.watch(monthTransactionsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.history), toolbarHeight: 64),
+      appBar: AppBar(
+        title: const Text(AppStrings.history),
+        toolbarHeight: 64,
+        actions: [
+          IconButton(
+            icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedSearch01,
+              size: 24,
+            ),
+            tooltip: AppStrings.search,
+            onPressed: () => context.push('/search'),
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
         child: Column(

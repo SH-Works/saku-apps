@@ -73,6 +73,14 @@ class HomePage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const HugeIcon(
+              icon: HugeIcons.strokeRoundedSearch01,
+              size: 24,
+            ),
+            tooltip: AppStrings.search,
+            onPressed: () => context.push('/search'),
+          ),
+          IconButton(
+            icon: const HugeIcon(
               icon: HugeIcons.strokeRoundedWallet01,
               size: 24,
             ),

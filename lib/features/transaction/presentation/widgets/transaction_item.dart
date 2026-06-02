@@ -5,23 +5,22 @@ import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/categories.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/date_helper.dart';
 import '../../domain/entities/transaction.dart';
 
 class TransactionItem extends StatelessWidget {
   final Transaction transaction;
   final VoidCallback? onTap;
 
-  const TransactionItem({
-    super.key,
-    required this.transaction,
-    this.onTap,
-  });
+  const TransactionItem({super.key, required this.transaction, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final fg = isDark ? AppColors.white : AppColors.black;
-    final surfaceAlt = isDark ? AppColors.darkSurfaceAlt : AppColors.lightSurface;
+    final surfaceAlt = isDark
+        ? AppColors.darkSurfaceAlt
+        : AppColors.lightSurface;
     final cat = categoryById(transaction.categoryId);
     final isIncome = transaction.type == TransactionType.income;
 
@@ -48,7 +47,9 @@ class TransactionItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    cat.label,
+                    transaction.notes?.isNotEmpty == true
+                        ? '${cat.label} - ${transaction.notes}'
+                        : cat.label,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -56,16 +57,24 @@ class TransactionItem extends StatelessWidget {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
+                  // const SizedBox(height: 2),
+                  // Text(
+                  //   transaction.notes?.isNotEmpty == true
+                  //       ? transaction.notes!
+                  //       : (isIncome ? AppStrings.income : AppStrings.expense),
+                  //   style: const TextStyle(
+                  //     fontSize: 13,
+                  //     color: AppColors.secondary,
+                  //   ),
+                  //   overflow: TextOverflow.ellipsis,
+                  // ),
                   const SizedBox(height: 2),
                   Text(
-                    transaction.notes?.isNotEmpty == true
-                        ? transaction.notes!
-                        : (isIncome ? AppStrings.income : AppStrings.expense),
+                    DateHelper.formatFullDate(transaction.date),
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.secondary,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
