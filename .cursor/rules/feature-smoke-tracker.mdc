@@ -1,0 +1,717 @@
+---
+description: Smoke Tracker feature for Saku app. Daily cigarette consumption tracker with statistics, cost tracking, and auto-expense integration.
+globs: lib/features/smoke_tracker/**
+alwaysApply: false
+---
+
+# Feature — Smoke Tracker
+
+## Overview
+A daily cigarette consumption tracker integrated into Saku.
+Users can log each cigarette with timestamp, set a daily limit,
+view statistics, and automatically record cigarette spending as
+an expense transaction in the main finance tracker.
+
+**This feature is OPTIONAL and OFF by default.**
+Since Saku is a general-purpose app, Smoke Tracker must be
+explicitly enabled by the user. When disabled, all smoke-related
+UI elements are completely hidden from the app — no menu entries,
+no home card, no routes accessible.
+
+Feature toggle is stored in the global app settings (Hive 'settings' box).
+Key: `smokeTrackerEnabled` (bool, default: false)
+
+---
+
+## Smoke Log Entity — smoke_log.dart
+```dart
+import 'package:freezed_annotation/freezed_annotation.dart';
+part 'smoke_log.freezed.dart';
+
+@freezed
+class SmokeLog with _$SmokeLog {
+  const factory SmokeLog({
+    required String id,
+    required DateTime loggedAt,   // exact timestamp of each cigarette
+    required DateTime date,       // date only (for grouping by day)
+    String? notes,                // optional e.g. "after lunch", "stress"
+    required DateTime createdAt,
+  }) = _SmokeLog;
+}
+```
+
+## Smoke Settings Entity — smoke_settings.dart
+```dart
+// Stored in Hive 'smoke_settings' box as a single record
+
+@freezed
+class SmokeSettings with _$SmokeSettings {
+  const factory SmokeSettings({
+    required bool isEnabled,          // master toggle — ON/OFF for the whole feature
+    required int dailyLimit,          // max cigarettes per day
+    required int cigarettesPerPack,   // how many cigarettes in 1 pack
+    required int pricePerPack,        // price per pack in IDR
+    required bool notifyAtLimit,      // notify when daily limit reached
+    required bool notifyAt80Percent,  // notify at 80% of daily limit
+    required bool autoLogExpense,     // auto-add to Saku transactions
+    required String expenseWalletId,  // which wallet to deduct from
+  }) = _SmokeSettings;
+
+  // Default settings — feature OFF by default
+  factory SmokeSettings.defaults() => const SmokeSettings(
+    isEnabled: false,
+    dailyLimit: 15,
+    cigarettesPerPack: 20,
+    pricePerPack: 25000,
+    notifyAtLimit: true,
+    notifyAt80Percent: true,
+    autoLogExpense: false,
+    expenseWalletId: '',
+  );
+}
+
+// Computed helpers:
+// pricePerCigarette = pricePerPack / cigarettesPerPack
+// dailyCost(count) = count * pricePerCigarette
+// monthlyCost = sum of all daily costs in a month
+```
+
+---
+
+## Hive Models
+
+### smoke_log_model.dart
+```dart
+@HiveType(typeId: 5)
+class SmokeLogModel extends HiveObject {
+  @HiveField(0) late String id;
+  @HiveField(1) late DateTime loggedAt;
+  @HiveField(2) late DateTime date;
+  @HiveField(3) String? notes;
+  @HiveField(4) late DateTime createdAt;
+
+  SmokeLog toEntity() => SmokeLog(
+    id: id,
+    loggedAt: loggedAt,
+    date: date,
+    notes: notes,
+    createdAt: createdAt,
+  );
+
+  static SmokeLogModel fromEntity(SmokeLog s) => SmokeLogModel()
+    ..id = s.id
+    ..loggedAt = s.loggedAt
+    ..date = s.date
+    ..notes = s.notes
+    ..createdAt = s.createdAt;
+}
+```
+
+### smoke_settings_model.dart
+```dart
+@HiveType(typeId: 6)
+class SmokeSettingsModel extends HiveObject {
+  @HiveField(0) late bool isEnabled;        // master toggle
+  @HiveField(1) late int dailyLimit;
+  @HiveField(2) late int cigarettesPerPack;
+  @HiveField(3) late int pricePerPack;
+  @HiveField(4) late bool notifyAtLimit;
+  @HiveField(5) late bool notifyAt80Percent;
+  @HiveField(6) late bool autoLogExpense;
+  @HiveField(7) late String expenseWalletId;
+}
+```
+
+---
+
+## Hive Boxes
+```dart
+// Register in main.dart
+Hive.registerAdapter(SmokeLogModelAdapter());
+Hive.registerAdapter(SmokeSettingsModelAdapter());
+await Hive.openBox<SmokeLogModel>('smoke_logs');
+await Hive.openBox<SmokeSettingsModel>('smoke_settings');
+```
+
+---
+
+## Folder Structure
+```
+lib/
+└── features/
+    └── smoke_tracker/
+        ├── data/
+        │   ├── datasources/
+        │   │   ├── smoke_log_datasource.dart
+        │   │   └── smoke_settings_datasource.dart
+        │   ├── models/
+        │   │   ├── smoke_log_model.dart           # HiveObject typeId: 5
+        │   │   └── smoke_settings_model.dart      # HiveObject typeId: 6
+        │   └── repositories/
+        │       └── smoke_repository_impl.dart
+        │
+        ├── domain/
+        │   ├── entities/
+        │   │   ├── smoke_log.dart                 # Freezed
+        │   │   └── smoke_settings.dart            # Freezed
+        │   ├── repositories/
+        │   │   └── smoke_repository.dart          # Abstract
+        │   └── usecases/
+        │       ├── log_cigarette.dart
+        │       ├── delete_smoke_log.dart
+        │       ├── get_logs_by_day.dart
+        │       ├── get_logs_by_month.dart
+        │       ├── get_smoke_statistics.dart
+        │       ├── get_smoke_settings.dart
+        │       ├── update_smoke_settings.dart
+        │       └── toggle_smoke_tracker.dart   # enable/disable feature
+        │
+        └── presentation/
+            ├── providers/
+            │   └── smoke_provider.dart
+            ├── pages/
+            │   ├── smoke_tracker_page.dart        # Main tracker screen
+            │   ├── smoke_statistics_page.dart     # Charts & stats
+            │   └── smoke_settings_page.dart       # Settings for tracker
+            └── widgets/
+                ├── smoke_counter_card.dart        # Big counter + +/- buttons
+                ├── smoke_timeline.dart            # Today's log with timestamps
+                ├── smoke_daily_chart.dart         # Bar chart daily count
+                └── smoke_cost_summary.dart        # Cost breakdown widget
+```
+
+---
+
+## Abstract Repository — smoke_repository.dart
+```dart
+abstract class SmokeRepository {
+  // Logs
+  Future<void> logCigarette(SmokeLog log);
+  Future<void> deleteSmokeLog(String id);
+  Future<List<SmokeLog>> getLogsByDay(DateTime date);
+  Future<List<SmokeLog>> getLogsByMonth(int year, int month);
+  Future<Map<DateTime, int>> getDailyCountByMonth(int year, int month);
+  // Returns: { date: count } map for chart
+
+  // Settings
+  Future<SmokeSettings?> getSettings();
+  Future<void> saveSettings(SmokeSettings settings);
+
+  // Statistics
+  Future<SmokeStatistics> getStatistics(int year, int month);
+}
+
+// Statistics data class
+class SmokeStatistics {
+  final int totalThisMonth;
+  final int totalLastMonth;
+  final double averagePerDay;
+  final int highestDay;           // max in a single day
+  final int lowestDay;            // min in a single day (days with logs)
+  final int totalCostThisMonth;   // in IDR
+  final int daysUnderLimit;       // days below daily limit
+  final int daysOverLimit;        // days above daily limit
+}
+```
+
+---
+
+## Log Cigarette Use Case — log_cigarette.dart
+```dart
+class LogCigarette {
+  final SmokeRepository smokeRepo;
+  final TransactionRepository transactionRepo;
+
+  LogCigarette(this.smokeRepo, this.transactionRepo);
+
+  Future<void> call({String? notes}) async {
+    final now = DateTime.now();
+
+    // 1. Save smoke log
+    final log = SmokeLog(
+      id: const Uuid().v4(),
+      loggedAt: now,
+      date: DateTime(now.year, now.month, now.day),
+      notes: notes,
+      createdAt: now,
+    );
+    await smokeRepo.logCigarette(log);
+
+    // 2. Check settings
+    final settings = await smokeRepo.getSettings();
+    if (settings == null) return;
+
+    // 3. Auto-log expense if enabled
+    // Only log expense once per pack consumed
+    // i.e. every [cigarettesPerPack] cigarettes = 1 pack expense
+    if (settings.autoLogExpense) {
+      final todayLogs = await smokeRepo.getLogsByDay(
+        DateTime(now.year, now.month, now.day),
+      );
+      if (todayLogs.length % settings.cigarettesPerPack == 0) {
+        // One full pack consumed → add expense
+        final tx = Transaction(
+          id: const Uuid().v4(),
+          type: TransactionType.expense,
+          amount: settings.pricePerPack,
+          categoryId: 'smoke',         // new category
+          walletId: settings.expenseWalletId,
+          date: now,
+          notes: 'Cigarettes — 1 pack',
+          createdAt: now,
+        );
+        await transactionRepo.addTransaction(tx);
+      }
+    }
+
+    // 4. Check daily limit notifications
+    final todayCount = (await smokeRepo.getLogsByDay(
+      DateTime(now.year, now.month, now.day),
+    )).length;
+
+    if (settings.notifyAt80Percent) {
+      final threshold = (settings.dailyLimit * 0.8).floor();
+      if (todayCount == threshold) {
+        // Trigger local notification
+        await _notify(
+          title: '⚠ Smoke Limit Warning',
+          body: 'You\'ve smoked $todayCount/${settings.dailyLimit} cigarettes today.',
+        );
+      }
+    }
+
+    if (settings.notifyAtLimit && todayCount >= settings.dailyLimit) {
+      await _notify(
+        title: '🚫 Daily Limit Reached',
+        body: 'You\'ve reached your daily limit of ${settings.dailyLimit} cigarettes.',
+      );
+    }
+  }
+}
+```
+
+---
+
+## New Category for Smoke Expense
+```dart
+// Add to categories.dart
+const List<TransactionCategory> kCategories = [
+  // ... existing categories ...
+  TransactionCategory(id: 'smoke', label: 'Cigarettes', icon: '🚬'),
+];
+```
+
+---
+
+## Riverpod Providers — smoke_provider.dart
+```dart
+final smokeRepositoryProvider = Provider<SmokeRepository>((ref) {
+  final logBox = Hive.box<SmokeLogModel>('smoke_logs');
+  final settingsBox = Hive.box<SmokeSettingsModel>('smoke_settings');
+  return SmokeRepositoryImpl(
+    SmokeLogDatasource(logBox),
+    SmokeSettingsDatasource(settingsBox),
+  );
+});
+
+final logCigaretteProvider = Provider<LogCigarette>((ref) {
+  return LogCigarette(
+    ref.read(smokeRepositoryProvider),
+    ref.read(transactionRepositoryProvider),
+  );
+});
+
+final todayLogsProvider = FutureProvider<List<SmokeLog>>((ref) async {
+  final now = DateTime.now();
+  return ref.read(smokeRepositoryProvider).getLogsByDay(
+    DateTime(now.year, now.month, now.day),
+  );
+});
+
+final todayCountProvider = Provider<int>((ref) {
+  return ref.watch(todayLogsProvider).value?.length ?? 0;
+});
+
+final smokeSettingsProvider = FutureProvider<SmokeSettings?>((ref) async {
+  return ref.read(smokeRepositoryProvider).getSettings();
+});
+
+final smokeDailyChartProvider =
+    FutureProvider.family<Map<DateTime, int>, ({int year, int month})>(
+        (ref, params) async {
+  return ref.read(smokeRepositoryProvider)
+      .getDailyCountByMonth(params.year, params.month);
+});
+
+final smokeStatisticsProvider =
+    FutureProvider.family<SmokeStatistics, ({int year, int month})>(
+        (ref, params) async {
+  return ref.read(smokeRepositoryProvider)
+      .getStatistics(params.year, params.month);
+});
+
+// Master toggle provider
+final smokeTrackerEnabledProvider = StateProvider<bool>((ref) {
+  final settings = ref.watch(smokeSettingsProvider).value;
+  return settings?.isEnabled ?? false;
+});
+
+// Toggle use case — enable or disable the entire feature
+final toggleSmokeTrackerProvider = Provider<ToggleSmokeTracker>((ref) {
+  return ToggleSmokeTracker(ref.read(smokeRepositoryProvider));
+});
+```
+
+## Toggle Use Case — toggle_smoke_tracker.dart
+```dart
+class ToggleSmokeTracker {
+  final SmokeRepository smokeRepo;
+  ToggleSmokeTracker(this.smokeRepo);
+
+  Future<void> call(bool enabled) async {
+    final current = await smokeRepo.getSettings() ?? SmokeSettings.defaults();
+    await smokeRepo.saveSettings(current.copyWith(isEnabled: enabled));
+  }
+}
+```
+
+---
+
+## Screen Specifications
+
+### smoke_tracker_page.dart — Main Tracker
+```
+- AppBar: large title "Smoke Tracker"
+  - Actions: [bar_chart icon → stats page] [settings icon → smoke settings]
+
+- SmokeCounterCard (top, full width):
+  - Center: large number (today's count) e.g. "12"
+  - Label below: "cigarettes today"
+  - Sub-label: daily limit indicator "8 / 15 daily limit"
+  - LinearProgressIndicator:
+    - Normal < 80%: black fill
+    - Warning >= 80%: dark gray
+    - Exceeded: full black with "Over limit" label
+  - Row of 3 buttons:
+    - [-] button: gray, remove last log (with confirmation)
+    - [🚬] big center button: black, tap to log 1 cigarette
+    - [+] button: gray, same as center tap
+  - Cost today: "Rp xx.xxx today" (small, gray)
+
+- Section: "Today's Timeline"
+  - ListView of SmokeLog items sorted by time desc
+  - Each row: time (HH:mm) | "Cigarette #N" | notes (if any) | delete icon
+  - Swipe to delete individual log
+  - Empty state: "No cigarettes logged today 👍"
+
+- Section: "This Week" (mini bar chart, 7 days)
+  - Small BarChart (fl_chart) showing last 7 days count
+  - Today highlighted with black bar, others gray
+```
+
+### smoke_statistics_page.dart — Charts & Stats
+```
+- AppBar: large title "Statistics"
+- MonthSelector at top (same widget as other pages)
+
+- Summary cards row (2x2 grid):
+  - Total this month (count)
+  - Avg per day
+  - Total cost this month (formatRupiah)
+  - Days over limit
+
+- Monthly Bar Chart:
+  - X-axis: day of month
+  - Y-axis: cigarette count
+  - Black bars, daily limit shown as dashed horizontal line
+  - Days over limit: darker bar fill
+
+- Comparison row:
+  - This month vs last month (count + cost)
+  - Arrow indicator ↑ or ↓ with percentage change
+
+- Timeline section: "Worst Days" top 5 days with highest count
+  - Each row: date | count | cost
+
+- Cost breakdown:
+  - Packs consumed this month
+  - Total spent on cigarettes
+  - "What else you could have bought with Rp xxx.xxx"
+    (e.g. "3x dinner", "1x monthly gym" — based on other transactions)
+```
+
+### smoke_settings_page.dart — Tracker Settings
+```
+- AppBar: "Smoke Settings" with back button
+- iOS grouped list style
+
+- Section "My Cigarette":
+  - Cigarettes per pack  → number input (default: 20)
+  - Price per pack       → Rupiah input (e.g. Rp 25.000)
+  - Price per cigarette  → auto-calculated, read-only (gray)
+
+- Section "Daily Limit":
+  - Daily limit          → number input (e.g. 15)
+  - Notify at 80%        → iOS Toggle
+  - Notify at limit      → iOS Toggle
+
+- Section "Finance Integration":
+  - Auto-log as expense  → iOS Toggle
+  - Wallet               → wallet picker (shown only if toggle ON)
+  - "Expense logged per full pack consumed" → small gray info text
+
+- Save button: full-width black ElevatedButton "Save Settings"
+
+- Onboarding: if settings not yet configured, show setup sheet on first open
+```
+
+---
+
+## Navigation & Access Points
+
+### From Settings Page — with Active/Inactive Toggle
+```dart
+// In settings_page.dart under Section "Tools"
+// Shows toggle ON/OFF + chevron to open tracker (only when enabled)
+
+Consumer(
+  builder: (context, ref, _) {
+    final isEnabled = ref.watch(smokeTrackerEnabledProvider);
+    return Column(
+      children: [
+        // Row 1: Enable/disable toggle
+        ListTile(
+          leading: const Text('🚬', style: TextStyle(fontSize: 20)),
+          title: const Text('Smoke Tracker'),
+          subtitle: Text(
+            isEnabled ? 'Tap to open tracker' : 'Enable to track cigarettes',
+            style: const TextStyle(fontSize: 12, color: Color(0xFF8E8E93)),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Switch.adaptive(
+                value: isEnabled,
+                activeColor: Colors.black,
+                onChanged: (val) async {
+                  // If enabling for the first time → show onboarding sheet
+                  if (val) {
+                    final settings = await ref
+                        .read(smokeRepositoryProvider)
+                        .getSettings();
+                    if (settings == null || settings.cigarettesPerPack == 0) {
+                      // Show setup bottom sheet before enabling
+                      await showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        builder: (_) => const SmokeOnboardingSheet(),
+                      );
+                    }
+                  }
+                  await ref
+                      .read(toggleSmokeTrackerProvider)
+                      .call(val);
+                  ref.invalidate(smokeSettingsProvider);
+                },
+              ),
+              if (isEnabled) ...[
+                const SizedBox(width: 8),
+                const Icon(Icons.chevron_right, color: Color(0xFF8E8E93)),
+              ],
+            ],
+          ),
+          onTap: isEnabled ? () => context.push('/smoke') : null,
+        ),
+      ],
+    );
+  },
+)
+```
+
+### Conditional Home Quick Card
+```dart
+// In home_page.dart — only show SmokeQuickCard when feature is enabled
+Consumer(
+  builder: (context, ref, _) {
+    final isEnabled = ref.watch(smokeTrackerEnabledProvider);
+    if (!isEnabled) return const SizedBox.shrink(); // completely hidden
+    return SmokeQuickCard(
+      todayCount: count,
+      todayCost: cost,
+      dailyLimit: limit,
+    );
+  },
+)
+```
+
+### Guard All Smoke Routes
+```dart
+// In router.dart — redirect to home if smoke tracker is disabled
+GoRoute(
+  path: '/smoke',
+  redirect: (context, state) {
+    final container = ProviderScope.containerOf(context);
+    final isEnabled = container.read(smokeTrackerEnabledProvider);
+    return isEnabled ? null : '/home'; // redirect if disabled
+  },
+  builder: (_, __) => const SmokeTrackerPage(),
+),
+GoRoute(
+  path: '/smoke/stats',
+  redirect: (context, state) {
+    final container = ProviderScope.containerOf(context);
+    final isEnabled = container.read(smokeTrackerEnabledProvider);
+    return isEnabled ? null : '/home';
+  },
+  builder: (_, __) => const SmokeStatisticsPage(),
+),
+GoRoute(
+  path: '/smoke/settings',
+  redirect: (context, state) {
+    final container = ProviderScope.containerOf(context);
+    final isEnabled = container.read(smokeTrackerEnabledProvider);
+    return isEnabled ? null : '/home';
+  },
+  builder: (_, __) => const SmokeSettingsPage(),
+),
+```
+
+### Onboarding Sheet — smoke_onboarding_sheet.dart
+```
+Shown ONCE when user enables Smoke Tracker for the first time.
+Bottom sheet with setup wizard (2 steps):
+
+Step 1 — "Set Up Your Cigarette":
+  - Cigarettes per pack (default: 20)
+  - Price per pack (Rupiah input)
+  - Auto-calculated: price per cigarette
+
+Step 2 — "Set Your Daily Limit":
+  - Daily limit slider or number input
+  - Enable notifications toggle
+
+"Start Tracking" button → saves settings + enables feature
+"Skip for now" → enables feature with default settings
+
+After completing: navigate to /smoke
+```
+
+---
+
+## router.dart Updates
+```dart
+// Routes are guarded — redirect to /home if smokeTrackerEnabled = false
+GoRoute(path: '/smoke',          redirect: ..., builder: (_, __) => const SmokeTrackerPage()),
+GoRoute(path: '/smoke/stats',    redirect: ..., builder: (_, __) => const SmokeStatisticsPage()),
+GoRoute(path: '/smoke/settings', redirect: ..., builder: (_, __) => const SmokeSettingsPage()),
+// See full route guard implementation in Navigation section above
+```
+
+---
+
+## main.dart Updates
+```dart
+Hive.registerAdapter(SmokeLogModelAdapter());
+Hive.registerAdapter(SmokeSettingsModelAdapter());
+await Hive.openBox<SmokeLogModel>('smoke_logs');
+await Hive.openBox<SmokeSettingsModel>('smoke_settings');
+```
+
+---
+
+## categories.dart Update
+```dart
+// Add smoke category to kCategories list
+TransactionCategory(id: 'smoke', label: 'Cigarettes', icon: '🚬'),
+```
+
+---
+
+## Design Rules
+- All monochrome — no colors
+- Counter number: very large bold font (72px) — the hero element
+- Progress bar:
+  - Under 80%: black fill, gray track
+  - 80–99%: dark gray (#3A3A3A) fill
+  - 100%+: full black, "Over limit" label appears
+- Log button: large circular black button with 🚬 icon
+- Timeline rows: clean, minimal — time on left, delete icon on right
+- Charts: black bars only, dashed gray line for daily limit
+- Notification style: dark snackbar (black bg, white text)
+
+---
+
+## Notification Messages
+```dart
+// 80% warning
+title: '⚠ Smoke Limit Warning'
+body: 'You\'ve smoked [N]/[limit] cigarettes today. Slow down!'
+
+// 100% limit reached
+title: '🚫 Daily Limit Reached'
+body: 'You\'ve reached your daily limit of [limit] cigarettes.'
+
+// Expense auto-logged
+// Silent — no notification, just adds to transaction silently
+```
+
+---
+
+## Cursor Prompt to Implement This Feature
+```
+@feature-smoke-tracker.mdc @.cursorrules
+
+Implement the Smoke Tracker feature for Saku app.
+This feature is OFF by default and must be enabled by the user in Settings.
+
+Prerequisites:
+- Multiple Wallets feature must be implemented (for expense wallet picker)
+- flutter_local_notifications must already be set up (from Budget feature)
+- categories.dart must be updated to include 'smoke' category
+
+Steps:
+1. Add 'smoke' category to categories.dart
+2. Create smoke_log.dart (Freezed entity)
+3. Create smoke_settings.dart (Freezed entity) with isEnabled field + defaults()
+4. Create smoke_log_model.dart (Hive typeId: 5)
+5. Create smoke_settings_model.dart (Hive typeId: 6) with isEnabled HiveField(0)
+6. Create smoke_log_datasource.dart and smoke_settings_datasource.dart
+7. Create smoke_repository.dart (abstract) with SmokeStatistics class
+8. Create smoke_repository_impl.dart
+9. Create all use cases:
+   - toggle_smoke_tracker.dart  ← enable/disable feature
+   - log_cigarette.dart (with auto-expense + notification logic)
+   - delete_smoke_log.dart
+   - get_logs_by_day.dart
+   - get_logs_by_month.dart
+   - get_smoke_statistics.dart
+   - get_smoke_settings.dart
+   - update_smoke_settings.dart
+10. Create smoke_provider.dart (Riverpod) including smokeTrackerEnabledProvider
+11. Create smoke_onboarding_sheet.dart (2-step setup wizard)
+12. Create smoke_counter_card.dart widget
+13. Create smoke_timeline.dart widget
+14. Create smoke_daily_chart.dart widget (fl_chart)
+15. Create smoke_cost_summary.dart widget
+16. Create smoke_tracker_page.dart
+17. Create smoke_statistics_page.dart
+18. Create smoke_settings_page.dart
+19. Add conditional SmokeQuickCard to home_page.dart (hidden when disabled)
+20. Add Smoke Tracker toggle to settings_page.dart under "Tools" section
+    - Shows toggle Switch + chevron (chevron only visible when enabled)
+    - On first enable: show SmokeOnboardingSheet before activating
+21. Update router.dart with route guards (redirect to /home when disabled)
+22. Update main.dart (register adapters, open boxes)
+23. Run build_runner
+
+Active/Inactive behavior:
+- isEnabled = false (default): ALL smoke UI hidden, routes redirect to /home
+- isEnabled = true: full feature visible, SmokeQuickCard on Home, routes accessible
+- Toggling OFF: feature hides immediately, data is preserved (not deleted)
+- Toggling ON again: data and settings restored from Hive
+
+Follow clean architecture strictly.
+Black & white design only — no colors.
+All amounts in IDR (int), use formatRupiah() for display.
+Show each file before writing for confirmation.
+```
