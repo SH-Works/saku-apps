@@ -18,8 +18,8 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
 
-    // Step 1 — after 2.4s, start fade-out
-    Future.delayed(const Duration(milliseconds: 2400), () {
+    // Step 1 — after 1s, start fade-out
+    Future.delayed(const Duration(milliseconds: 1000), () {
       if (!mounted) return;
       setState(() => _opacity = 0.0);
 
