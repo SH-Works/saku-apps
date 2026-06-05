@@ -398,3 +398,5 @@ flutter test      # currency formatter unit tests
 - Updated `Makefile` and `.vscode/tasks.json` to pass `--flavor` to all Flutter run/build commands.
 
 > *"Healthy finances start with organized records."* 🪙
+
+Must be Updated
