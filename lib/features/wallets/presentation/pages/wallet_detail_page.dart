@@ -10,6 +10,7 @@ import '../../../../core/utils/date_helper.dart';
 import '../../../transaction/domain/entities/transaction.dart';
 import '../../../transaction/presentation/providers/transaction_provider.dart';
 import '../../../transaction/presentation/widgets/transaction_item.dart';
+import '../../../transfer/presentation/widgets/transfer_sheet.dart';
 import '../providers/wallet_provider.dart';
 
 class WalletDetailPage extends ConsumerWidget {
@@ -66,6 +67,22 @@ class WalletDetailPage extends ConsumerWidget {
           ),
           onPressed: () => context.pop(),
         ),
+        actions: [
+          IconButton(
+            icon: const Text('⇄', style: TextStyle(fontSize: 20)),
+            tooltip: AppStrings.transfer,
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              useSafeArea: true,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              builder: (_) => TransferSheet(defaultFromWalletId: wallet.id),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -108,6 +125,24 @@ class WalletDetailPage extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Material(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              child: ListTile(
+                title: const Text(AppStrings.transferHistory),
+                trailing: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 18,
+                  color: AppColors.secondary,
+                ),
+                onTap: () =>
+                    context.push('/transfers?walletId=$walletId'),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
           // Transaction list
           Expanded(
             child: walletTxs.isEmpty

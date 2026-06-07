@@ -10,6 +10,9 @@ import 'features/settings/presentation/providers/settings_provider.dart';
 import 'features/transaction/data/datasources/transaction_local_datasource.dart';
 import 'features/transaction/data/models/transaction_model.dart';
 import 'features/transaction/presentation/providers/transaction_provider.dart';
+import 'features/transfer/data/datasources/transfer_local_datasource.dart';
+import 'features/transfer/data/models/wallet_transfer_model.dart';
+import 'features/transfer/presentation/providers/transfer_provider.dart';
 import 'features/wallets/data/datasources/wallet_local_datasource.dart';
 import 'features/wallets/data/models/wallet_model.dart';
 import 'features/wallets/data/repositories/wallet_repository_impl.dart';
@@ -40,6 +43,9 @@ Future<void> bootstrap(Flavor flavor) async {
   final walletBoxName = '${WalletLocalDataSource.boxName}$suffix';
   final walletBox = await Hive.openBox<WalletModel>(walletBoxName);
 
+  final transferBoxName = '${TransferLocalDataSource.boxName}$suffix';
+  final transferBox = await Hive.openBox<WalletTransferModel>(transferBoxName);
+
   final settingsBox = await Hive.openBox('settings$suffix');
 
   // Seed the default "Kas" wallet on first launch.
@@ -53,6 +59,7 @@ Future<void> bootstrap(Flavor flavor) async {
       overrides: [
         transactionBoxProvider.overrideWithValue(txBox),
         walletBoxProvider.overrideWithValue(walletBox),
+        transferBoxProvider.overrideWithValue(transferBox),
         settingsBoxProvider.overrideWithValue(settingsBox),
       ],
       child: const SakuApp(),

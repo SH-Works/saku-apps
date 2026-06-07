@@ -14,6 +14,9 @@ import '../../domain/usecases/get_all_wallets.dart';
 import '../../domain/usecases/set_default_wallet.dart';
 import '../../domain/usecases/update_wallet.dart';
 import '../../../transaction/domain/entities/transaction.dart';
+import '../../domain/utils/wallet_balance.dart';
+import '../../../transfer/domain/entities/wallet_transfer.dart';
+import '../../../transfer/presentation/providers/transfer_provider.dart';
 
 /// Must be overridden in main.dart after Hive initialization.
 final walletBoxProvider = Provider<Box<WalletModel>>((ref) {
@@ -90,20 +93,21 @@ final walletCurrentBalanceProvider =
   if (wallet == null) return 0;
 
   final txsAsync = ref.watch(allTransactionsStreamProvider);
+  final transfers = ref.watch(allTransfersStreamProvider).maybeWhen(
+        data: (list) => list,
+        orElse: () => <WalletTransfer>[],
+      );
+
   final transactions = txsAsync.maybeWhen(
     data: (list) => list.where((tx) => tx.walletId == walletId).toList(),
     orElse: () => <Transaction>[],
   );
 
-  int balance = wallet.seedBalance;
-  for (final tx in transactions) {
-    if (tx.type == TransactionType.income) {
-      balance += tx.amount;
-    } else {
-      balance -= tx.amount;
-    }
-  }
-  return balance;
+  return computeWalletBalance(
+    wallet: wallet,
+    transactions: transactions,
+    transfers: transfers,
+  );
 });
 
 /// Total balance across ALL wallets.

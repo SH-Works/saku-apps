@@ -10,12 +10,16 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/categories.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_helper.dart';
+import '../../../transfer/presentation/providers/transfer_provider.dart';
+import '../../../transfer/presentation/widgets/transfer_item.dart';
+import '../../../wallets/domain/entities/wallet.dart';
+import '../../../wallets/presentation/providers/wallet_provider.dart';
 import '../../domain/entities/transaction.dart';
 import '../providers/transaction_provider.dart';
 import '../widgets/month_selector.dart';
 import '../widgets/transaction_item.dart';
 
-enum _HistoryFilter { all, income, expense }
+enum _HistoryFilter { all, income, expense, transfer }
 
 class HistoryPage extends ConsumerStatefulWidget {
   const HistoryPage({super.key});
@@ -80,6 +84,13 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
                       AppStrings.expense,
                     ),
                   ),
+                  ButtonSegment(
+                    value: _HistoryFilter.transfer,
+                    label: Text(
+                      style: const TextStyle(fontSize: 14),
+                      AppStrings.transferTab,
+                    ),
+                  ),
                 ],
                 selected: {_filter},
                 showSelectedIcon: false,
@@ -88,7 +99,9 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
             ),
             const SizedBox(height: 8),
             Expanded(
-              child: monthTxsAsync.when(
+              child: _filter == _HistoryFilter.transfer
+                  ? _TransferHistoryList()
+                  : monthTxsAsync.when(
                 data: (txs) {
                   final filtered = _applyFilter(txs);
                   if (filtered.isEmpty) {
@@ -128,6 +141,7 @@ class _HistoryPageState extends ConsumerState<HistoryPage> {
   List<Transaction> _applyFilter(List<Transaction> txs) {
     switch (_filter) {
       case _HistoryFilter.all:
+      case _HistoryFilter.transfer:
         return txs;
       case _HistoryFilter.income:
         return txs.where((t) => t.type == TransactionType.income).toList();
@@ -498,6 +512,49 @@ class _DaySection extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _TransferHistoryList extends ConsumerWidget {
+  const _TransferHistoryList();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final transfers = ref.watch(monthTransfersProvider);
+    final wallets = ref.watch(walletsStreamProvider).maybeWhen(
+          data: (list) => list,
+          orElse: () => <Wallet>[],
+        );
+
+    Wallet? walletById(String id) =>
+        wallets.where((w) => w.id == id).firstOrNull;
+
+    if (transfers.isEmpty) {
+      return const Center(
+        child: Text(
+          AppStrings.noTransfers,
+          style: TextStyle(color: AppColors.secondary),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.only(top: 4, bottom: 80),
+      itemCount: transfers.length,
+      separatorBuilder: (context, index) => const Divider(indent: 56, height: 1),
+      itemBuilder: (context, index) {
+        final transfer = transfers[index];
+        final from = walletById(transfer.fromWalletId);
+        final to = walletById(transfer.toWalletId);
+        if (from == null || to == null) return const SizedBox.shrink();
+
+        return TransferItem(
+          transfer: transfer,
+          fromWallet: from,
+          toWallet: to,
+        );
+      },
     );
   }
 }
