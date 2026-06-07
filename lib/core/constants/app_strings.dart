@@ -110,6 +110,24 @@ class AppStrings {
       'Tambahkan dompet untuk mulai mengelola keuangan Anda';
   static const noTransactionsForWallet = 'Belum ada transaksi di dompet ini';
 
+  // Transfer
+  static const transfer = 'Transfer';
+  static const transferAction = 'Transfer Sekarang';
+  static const transferFrom = 'Dari';
+  static const transferTo = 'Ke';
+  static const transferHistory = 'Riwayat Transfer';
+  static const transferSuccess = 'Transfer berhasil';
+  static const transferDifferentWallets = 'Pilih dompet yang berbeda';
+  static const transferEnterAmount = 'Masukkan jumlah lebih dari 0';
+  static const transferNeedTwoWallets =
+      'Butuh minimal 2 dompet untuk melakukan transfer';
+  static const transferNotesHint = 'Tambahkan catatan (opsional)';
+  static const transferUndoTitle = 'Batalkan transfer?';
+  static const transferUndoConfirm =
+      'Transfer ini akan dihapus dan saldo dompet akan disesuaikan.';
+  static const noTransfers = 'Belum ada transfer';
+  static const transferTab = 'Transfer';
+
   // Error
   static const errorPrefix = 'Terjadi kesalahan';
   static const failedToSave = 'Gagal menyimpan';

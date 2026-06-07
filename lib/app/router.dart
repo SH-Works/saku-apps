@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../features/search/presentation/pages/search_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/splash/presentation/pages/splash_page.dart';
+import '../features/transfer/presentation/pages/transfer_history_page.dart';
 import '../features/transaction/presentation/pages/history_page.dart';
 import '../features/transaction/presentation/pages/home_page.dart';
 import '../features/transaction/presentation/pages/report_page.dart';
@@ -19,6 +20,12 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/splash',
       builder: (_, __) => const SplashPage(),
+    ),
+    GoRoute(
+      path: '/transfers',
+      builder: (_, state) => TransferHistoryPage(
+        walletId: state.uri.queryParameters['walletId'],
+      ),
     ),
     GoRoute(
       path: '/search',

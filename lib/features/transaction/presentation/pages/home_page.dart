@@ -6,6 +6,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../features/transfer/presentation/widgets/transfer_sheet.dart';
 import '../../../../features/wallets/domain/entities/wallet.dart';
 import '../../../../features/wallets/presentation/providers/wallet_provider.dart';
 import '../../../transaction/domain/entities/transaction.dart';
@@ -171,9 +172,12 @@ class HomePage extends ConsumerWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openAdd(context),
-        child: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 28),
+      floatingActionButton: GestureDetector(
+        onLongPress: () => _showSpeedDial(context),
+        child: FloatingActionButton(
+          onPressed: () => _openAdd(context),
+          child: const HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 28),
+        ),
       ),
     );
   }
@@ -188,6 +192,65 @@ class HomePage extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => const AddTransactionPage(),
+    );
+  }
+
+  void _openTransfer(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const TransferSheet(),
+    );
+  }
+
+  void _showSpeedDial(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.secondary.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ListTile(
+              leading: const HugeIcon(
+                icon: HugeIcons.strokeRoundedAdd01,
+                size: 22,
+              ),
+              title: const Text(AppStrings.addTransaction),
+              onTap: () {
+                Navigator.of(context).pop();
+                _openAdd(context);
+              },
+            ),
+            ListTile(
+              leading: const Text('⇄', style: TextStyle(fontSize: 20)),
+              title: const Text(AppStrings.transfer),
+              onTap: () {
+                Navigator.of(context).pop();
+                _openTransfer(context);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
     );
   }
 }

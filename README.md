@@ -1,123 +1,64 @@
 # Saku — Personal Finance Tracker
 
-> Record. Monitor. Save. All in your pocket.
+> Catat. Pantau. Hemat. Semua di saku Anda.
 
-Saku is a minimalist personal finance tracker for Indonesian users, built with Flutter and a strict **black & white iOS-style** design language.
+Saku is a minimalist personal finance tracker for Indonesian users, built with Flutter and a strict **black & white iOS-style** design language. All data is stored locally on device — no backend, no account required.
 
 ---
 
 ## Highlights
 
-- **Dashboard** — total balance, monthly income, monthly expense
-- **Quick Add** — modal sheet with custom Rupiah keypad and category grid
-- **History** — month selector, segmented filter (All / Income / Expense), swipe-to-delete
-- **Reports** — daily-spending bar chart and category breakdown
-- **Local first** — all data stored on device with Hive (no backend, no account)
-- **Light / Dark** — both modes follow the system theme
+| Feature | Description |
+| -------- | ------------ |
+| **Dashboard** | Balance card, wallet filter chips, recent transactions |
+| **Quick Add** | Modal sheet with custom Rupiah keypad and category grid |
+| **History** | Month selector, filter (Semua / Pemasukan / Pengeluaran / Transfer) |
+| **Reports** | Daily spending chart and category breakdown |
+| **Search** | Full-text search by category, notes, or amount |
+| **Wallets** | Multiple wallets (Kas, BCA, e-wallet, etc.) with computed balance |
+| **Transfer** | Move balance between wallets — not counted as income/expense |
+| **Settings** | Theme, daily reminder, CSV export, clear all data |
+| **Flavors** | Development & Production side-by-side installs |
 
 ---
 
 ## Design
 
 - **Style:** Minimalist Black & White, Apple Human Interface Guidelines
-- **Typography:** Inter (Google Fonts proxy for SF Pro)
+- **Typography:** Inter (bundled in `assets/fonts/`)
+- **Icons:** [HugeIcons](https://hugeicons.com/) (monochrome stroke style)
 - **Palette:** `#000000` · `#FFFFFF` · `#F5F5F5` · `#1C1C1E` · `#8E8E93` · `#E0E0E0` · `#2C2C2E`
 - **Currency:** IDR with dot thousand separator (e.g. `Rp 1.250.000`) — all amounts stored as `int` (no decimals)
+- **Language:** UI strings in Bahasa Indonesia (`lib/core/constants/app_strings.dart`)
 
 ---
 
 ## Tech stack
 
-| Layer            | Choice                                |
-| ---------------- | ------------------------------------- |
-| Framework        | Flutter (stable channel)              |
-| Architecture     | Clean Architecture (data/domain/UI)   |
-| State management | flutter_riverpod                      |
-| Routing          | go_router (with `ShellRoute`)         |
-| Local storage    | Hive CE (`hive_ce`, `hive_ce_flutter`)|
-| Charts           | fl_chart                              |
-| Code generation  | freezed, json_serializable, hive_ce_generator |
-| Typography       | google_fonts (Inter)                  |
+| Layer | Choice |
+| ----- | ------ |
+| Framework | Flutter (stable channel, Dart ^3.8.0) |
+| Architecture | Clean Architecture (data / domain / presentation) |
+| State management | flutter_riverpod |
+| Routing | go_router (ShellRoute + CustomTransitionPage) |
+| Local storage | Hive CE (`hive_ce`, `hive_ce_flutter`) |
+| Charts | fl_chart |
+| Notifications | flutter_local_notifications + timezone |
+| Code generation | freezed, json_serializable, hive_ce_generator |
+| Animation | lottie (splash screen) |
 
-> Hive CE is used in place of the original `hive`/`hive_flutter` packages because the originals no longer support the latest Dart analyzer. The public API is identical.
-
----
-
-## Project structure
-
-```
-lib/
-├── main.dart                      # Default entry → bootstraps `Flavor.development`
-├── main_development.dart          # Explicit dev entry point
-├── main_production.dart           # Explicit prod entry point
-├── hive_registrar.g.dart          # Generated — registers all Hive adapters
-│
-├── app/
-│   ├── app.dart                   # MaterialApp.router + theme + router
-│   ├── router.dart                # go_router configuration
-│   ├── main_shell.dart            # ShellRoute scaffold + bottom NavigationBar
-│   └── theme.dart                 # Light & dark themes (B&W)
-│
-├── core/
-│   ├── config/
-│   │   └── flavor_config.dart     # Flavor enum + runtime config
-│   ├── constants/
-│   │   ├── app_strings.dart       # Centralized UI strings
-│   │   └── categories.dart        # `kCategories` + `categoryById()`
-│   ├── errors/
-│   │   └── failure.dart           # Sealed `Failure` hierarchy
-│   └── utils/
-│       ├── currency_formatter.dart # `formatRupiah()` / `parseRupiah()`
-│       └── date_helper.dart        # Date formatting + month math
-│
-└── features/
-    ├── splash/
-    │   └── presentation/pages/splash_page.dart
-    │
-    └── transaction/
-        ├── data/
-        │   ├── datasources/transaction_local_datasource.dart
-        │   ├── models/transaction_model.dart           # Hive `@HiveType`
-        │   └── repositories/transaction_repository_impl.dart
-        │
-        ├── domain/
-        │   ├── entities/
-        │   │   ├── transaction.dart                    # Freezed
-        │   │   └── transaction_summary.dart            # Freezed
-        │   ├── repositories/transaction_repository.dart # Abstract
-        │   └── usecases/
-        │       ├── add_transaction.dart
-        │       ├── delete_transaction.dart
-        │       ├── get_all_transactions.dart
-        │       ├── get_transactions_by_month.dart
-        │       └── get_summary.dart
-        │
-        └── presentation/
-            ├── providers/transaction_provider.dart    # Riverpod wiring
-            ├── pages/
-            │   ├── home_page.dart
-            │   ├── add_transaction_page.dart
-            │   ├── history_page.dart
-            │   └── report_page.dart
-            └── widgets/
-                ├── amount_input.dart      # Custom numeric keypad
-                ├── balance_card.dart      # Black hero card on Home
-                ├── category_picker.dart   # 3-column category grid
-                ├── month_selector.dart    # < May 2026 >
-                ├── monthly_chart.dart     # fl_chart bar graph
-                └── transaction_item.dart  # Single row
-```
+> Hive CE replaces the original `hive` package — same public API, maintained for current Dart analyzer.
 
 ---
 
-## Architecture — Clean Architecture flow
+## Architecture
 
 ```
-presentation (UI / Riverpod)
-        │  reads
+presentation (UI / Riverpod providers)
+        │  reads use cases via providers
         ▼
-   use cases (domain)         ← no Flutter, pure Dart
-        │  uses
+   use cases (domain)              ← pure Dart, no Flutter imports
+        │  uses abstract repository
         ▼
    abstract repository (domain)
         ▲
@@ -126,31 +67,115 @@ presentation (UI / Riverpod)
  repository impl (data)
         │  delegates to
         ▼
-   local datasource (data)    ← talks to Hive box
+   local datasource (data)         ← talks to Hive Box
+        │
+        ▼
+   Hive model (data)               ← @HiveType, toEntity() / fromEntity()
+        │
+        ▼
+   Freezed entity (domain)         ← business object used by UI & use cases
 ```
 
-**Strict rules** (enforced by code review and `.cursorrules`):
+### Rules (enforced in `.cursorrules`)
 
-- Presentation never imports from `data/`. It only depends on use cases through Riverpod providers.
-- Domain has zero Flutter imports.
-- All monetary amounts are `int` IDR (no decimals).
-- Use `formatRupiah()` for any on-screen amount.
-- New feature checklist: entity → abstract repository → repository impl → datasource → use case → provider → UI.
+1. **Presentation** never imports from `data/` — only domain entities and providers.
+2. **Domain** has zero Flutter imports.
+3. All monetary amounts are `int` IDR — use `formatRupiah()` for display.
+4. New feature checklist: entity → abstract repo → repo impl → datasource → use cases → provider → UI → route → main.dart box registration → `build_runner`.
+5. Black & white design only — no accent colors.
 
 ---
 
-## Data model
+## Project structure
 
-### Domain entity
+```
+lib/
+├── main.dart                          # Default entry → Flavor.development
+├── main_development.dart              # Explicit dev entry
+├── main_production.dart             # Explicit prod entry
+├── hive_registrar.g.dart              # Generated Hive adapter registration
+│
+├── app/
+│   ├── app.dart                       # MaterialApp.router + themeMode
+│   ├── router.dart                    # go_router routes
+│   ├── main_shell.dart                # Bottom NavigationBar shell
+│   └── theme.dart                     # Light & dark B&W themes
+│
+├── core/
+│   ├── config/flavor_config.dart      # Flavor enum + Hive box suffix
+│   ├── constants/
+│   │   ├── app_strings.dart           # All UI strings (Indonesian)
+│   │   └── categories.dart            # Transaction categories + HugeIcons
+│   ├── services/notification_service.dart
+│   └── utils/
+│       ├── currency_formatter.dart    # formatRupiah() / parseRupiah()
+│       └── date_helper.dart           # Indonesian date formatting
+│
+└── features/
+    ├── splash/
+    │   └── presentation/pages/splash_page.dart
+    │
+    ├── transaction/                   # Core feature (Phase 1)
+    │   ├── data/                      # TransactionModel (typeId: 0)
+    │   ├── domain/
+    │   └── presentation/
+    │       ├── providers/transaction_provider.dart
+    │       ├── pages/                 # home, add, history, report
+    │       └── widgets/             # balance_card, amount_input, etc.
+    │
+    ├── settings/                        # Phase 1
+    │   ├── data/settings_datasource.dart
+    │   └── presentation/pages/settings_page.dart
+    │
+    ├── search/                          # Phase 2
+    │   └── presentation/
+    │       ├── pages/search_page.dart
+    │       └── widgets/search_bar_widget.dart
+    │
+    ├── wallets/                         # Phase 2
+    │   ├── data/models/wallet_model.dart          # typeId: 1
+    │   ├── domain/utils/wallet_balance.dart       # Balance formula
+    │   └── presentation/
+    │       ├── providers/wallet_provider.dart
+    │       └── pages/                 # wallets, add_wallet, wallet_detail
+    │
+    └── transfer/                        # Phase 2
+        ├── data/models/wallet_transfer_model.dart # typeId: 4
+        ├── domain/usecases/
+        │   ├── execute_transfer.dart
+        │   └── delete_transfer.dart
+        └── presentation/
+            ├── providers/transfer_provider.dart
+            ├── pages/transfer_history_page.dart
+            └── widgets/               # transfer_sheet, transfer_item
+```
+
+---
+
+## Data model & Hive boxes
+
+All Hive boxes use a flavor suffix (`_dev` for development) so dev and prod data never collide.
+
+| Box name | Model | typeId | Purpose |
+| -------- | ----- | ------ | ------- |
+| `transactions` | `TransactionModel` | 0 | Income & expense records |
+| `wallets` | `WalletModel` | 1 | Wallet definitions |
+| `wallet_transfers` | `WalletTransferModel` | 4 | Inter-wallet transfers |
+| `settings` | plain Map | — | Theme, notifications, preferences |
+
+> typeIds 2 (recurring) and 3 (budget) are reserved for upcoming Phase 2 features.
+
+### Transaction entity
 
 ```dart
 @freezed
 abstract class Transaction with _$Transaction {
   const factory Transaction({
     required String id,
-    required TransactionType type,    // income | expense
-    required int amount,              // IDR, no decimals
+    required TransactionType type,       // income | expense
+    required int amount,                 // IDR integer
     required String categoryId,
+    @Default('default') String walletId, // linked wallet
     required DateTime date,
     String? notes,
     required DateTime createdAt,
@@ -158,217 +183,362 @@ abstract class Transaction with _$Transaction {
 }
 ```
 
-### Hive model
-
-`TransactionModel` (`typeId: 0`) is a thin Hive-friendly mirror with `toEntity()` / `fromEntity()` mappers. It is the only class that knows about Hive.
-
----
-
-## Riverpod providers (presentation)
-
-| Provider                              | Purpose                                                     |
-| ------------------------------------- | ----------------------------------------------------------- |
-| `transactionBoxProvider`              | Provides the open `Box<TransactionModel>` (overridden in `main.dart`) |
-| `transactionLocalDataSourceProvider`  | Wraps the Hive box                                          |
-| `transactionRepositoryProvider`       | Concrete `TransactionRepositoryImpl`                        |
-| `addTransactionUseCaseProvider`       | `AddTransaction` use case                                   |
-| `deleteTransactionUseCaseProvider`    | `DeleteTransaction` use case                                |
-| `getAllTransactionsUseCaseProvider`   | `GetAllTransactions` use case                               |
-| `getTransactionsByMonthUseCaseProvider` | `GetTransactionsByMonth` use case                         |
-| `getSummaryUseCaseProvider`           | `GetSummary` use case                                       |
-| `allTransactionsStreamProvider`       | `StreamProvider` of all transactions, reactive to Hive changes |
-| `selectedMonthProvider`               | Currently-selected month for History / Report               |
-| `monthTransactionsProvider`           | Transactions filtered by `selectedMonthProvider`            |
-| `monthSummaryProvider`                | Summary computed from `monthTransactionsProvider`           |
-| `overallSummaryProvider`              | All-time summary used by the Home balance card              |
-
----
-
-## Screens
-
-| Route        | Page                                  | Notes                                                       |
-| ------------ | ------------------------------------- | ----------------------------------------------------------- |
-| `/splash`    | `SplashPage`                          | 2.5s pure-Flutter animation, then auto-routes to `/home`    |
-| `/home`      | `HomePage`                            | Balance card + recent 5 transactions, FAB → Add modal       |
-| `/add`       | (modal sheet) `AddTransactionPage`    | Segmented Expense/Income, keypad, category grid, date, notes |
-| `/history`   | `HistoryPage`                         | Month selector + filter + grouped list with swipe-to-delete |
-| `/report`    | `ReportPage`                          | Stat cards, daily-spending bar chart, category breakdown    |
-
-The Add tab in the bottom `NavigationBar` opens the same modal sheet (it doesn't push a route).
-
----
-
-## Bottom navigation
+### Wallet entity
 
 ```dart
-NavigationBar(
-  destinations: [
-    NavigationDestination(icon: Icons.home_outlined,        selectedIcon: Icons.home,        label: 'Home'),
-    NavigationDestination(icon: Icons.add_circle_outline,   selectedIcon: Icons.add_circle,  label: 'Add'),
-    NavigationDestination(icon: Icons.list_alt_outlined,    selectedIcon: Icons.list_alt,    label: 'History'),
-    NavigationDestination(icon: Icons.bar_chart_outlined,   selectedIcon: Icons.bar_chart,   label: 'Report'),
-  ],
-)
+@freezed
+abstract class Wallet with _$Wallet {
+  const factory Wallet({
+    required String id,
+    required String name,
+    required String icon,          // emoji e.g. '💵'
+    @Default(0) int seedBalance,   // initial balance before app usage
+    required bool isDefault,
+    required DateTime createdAt,
+  }) = _Wallet;
+}
+```
+
+### Wallet transfer entity
+
+```dart
+@freezed
+abstract class WalletTransfer with _$WalletTransfer {
+  const factory WalletTransfer({
+    required String id,
+    required String fromWalletId,
+    required String toWalletId,
+    required int amount,
+    required DateTime date,
+    String? notes,
+    required DateTime createdAt,
+  }) = _WalletTransfer;
+}
+```
+
+### Wallet balance formula
+
+Balance is **computed**, not stored on the wallet entity:
+
+```
+saldo = seedBalance
+      + total pemasukan (walletId match)
+      - total pengeluaran (walletId match)
+      + transfer masuk (toWalletId match)
+      - transfer keluar (fromWalletId match)
+```
+
+Implementation: `lib/features/wallets/domain/utils/wallet_balance.dart`
+
+Transfer does **not** create income/expense transactions. Deleting a transfer record automatically reverses its balance effect because balance is derived from stored records.
+
+---
+
+## Routes
+
+| Route | Page | Access |
+| ----- | ---- | ------ |
+| `/splash` | SplashPage | App launch (Lottie animation) |
+| `/home` | HomePage | Bottom nav — Beranda |
+| `/add` | AddTransactionPage | FAB tap / bottom nav Tambah (modal) |
+| `/history` | HistoryPage | Bottom nav — Riwayat |
+| `/report` | ReportPage | Bottom nav — Laporan |
+| `/search` | SearchPage | Search icon on Home / History AppBar |
+| `/settings` | SettingsPage | Gear icon on Home AppBar |
+| `/wallets` | WalletsPage | Wallet icon on Home AppBar |
+| `/wallets/:id` | WalletDetailPage | Tap wallet in list |
+| `/transfers` | TransferHistoryPage | Wallet detail → Riwayat Transfer |
+| `/transfers?walletId=X` | TransferHistoryPage | Filtered by wallet |
+
+---
+
+## Key Riverpod providers
+
+### Transaction
+
+| Provider | Purpose |
+| -------- | ------- |
+| `transactionBoxProvider` | Open Hive box (overridden in main.dart) |
+| `allTransactionsStreamProvider` | Reactive stream of all transactions |
+| `selectedMonthProvider` | Selected month for History / Report |
+| `monthTransactionsProvider` | Transactions filtered by selected month |
+| `searchQueryProvider` / `searchResultsProvider` | Search feature |
+
+### Wallets
+
+| Provider | Purpose |
+| -------- | ------- |
+| `walletBoxProvider` | Open Hive box (overridden in main.dart) |
+| `walletsStreamProvider` | Reactive stream of all wallets |
+| `selectedWalletIdProvider` | Home page wallet filter (`null` = Semua) |
+| `walletCurrentBalanceProvider` | Computed balance per wallet (includes transfers) |
+| `totalBalanceProvider` | Sum of all wallet balances |
+
+### Transfer
+
+| Provider | Purpose |
+| -------- | ------- |
+| `transferBoxProvider` | Open Hive box (overridden in main.dart) |
+| `allTransfersStreamProvider` | Reactive stream of all transfers |
+| `monthTransfersProvider` | Transfers filtered by selected month |
+| `executeTransferUseCaseProvider` | Validate balance + save transfer |
+| `deleteTransferUseCaseProvider` | Delete transfer (auto-reverses balance) |
+
+---
+
+## Getting started
+
+### Prerequisites
+
+- Flutter SDK (stable channel, Dart ^3.8.0)
+- Android Studio / Xcode for platform builds
+- Make (optional, for Makefile shortcuts)
+
+### First-time setup
+
+```bash
+# 1. Clone and enter project
+cd saku_apps
+
+# 2. Install dependencies
+flutter pub get
+
+# 3. Generate Freezed + Hive code
+dart run build_runner build
+
+# 4. Run development flavor
+flutter run -t lib/main_development.dart --flavor development --dart-define=FLAVOR=development
+```
+
+### VS Code
+
+Use **Run & Debug** panel — pick `Saku · Development (debug)` or `Saku · Production (release)`.
+
+Config lives in `.vscode/launch.json`.
+
+---
+
+## Build commands (Makefile)
+
+```bash
+make get               # flutter pub get
+make gen               # build_runner build
+make watch             # build_runner watch
+
+make run-dev           # Run development flavor
+make run-prod          # Run production flavor (release)
+
+make apk-dev           # Debug APK (development)
+make apk-prod          # Release APK split-per-ABI (production)
+make appbundle-prod    # Play Store AAB
+
+make analyze           # flutter analyze
+make test              # flutter test
+make format            # dart format .
+```
+
+### Raw Flutter commands
+
+```bash
+# Development APK
+flutter build apk -t lib/main_development.dart --dart-define=FLAVOR=development --debug
+
+# Production APK
+flutter build apk -t lib/main_production.dart --dart-define=FLAVOR=production --release --split-per-abi
+
+# Production App Bundle
+flutter build appbundle -t lib/main_production.dart --dart-define=FLAVOR=production --release
 ```
 
 ---
 
 ## Flavors
 
-Saku ships with two real platform-level flavors plus matching Dart bootstrap entry points. They can be installed side-by-side on the same device.
+| Flavor | App title | Hive suffix | Android applicationId |
+| ------ | --------- | ----------- | --------------------- |
+| `development` | Saku (Dev) | `_dev` | `com.example.saku_apps.dev` |
+| `production` | Saku | _(none)_ | `com.example.saku_apps` |
 
-### Dart layer (`lib/core/config/flavor_config.dart`)
+Both flavors can be installed side-by-side on the same device.
 
-| Flavor        | App title    | Hive box suffix | Dart entry point             |
-| ------------- | ------------ | --------------- | ---------------------------- |
-| `development` | `Saku (Dev)` | `_dev`          | `lib/main_development.dart`  |
-| `production`  | `Saku`       | _(none)_        | `lib/main_production.dart`   |
-
-The Hive box-name suffix means dev and prod data never collide on the same device.
-
-### Android (`android/app/build.gradle.kts`)
-
-Two product flavors on the `env` dimension:
-
-| Flavor        | `applicationId`              | App label   | Version name suffix |
-| ------------- | ---------------------------- | ----------- | ------------------- |
-| `development` | `com.example.saku_apps.dev`  | `Saku Dev`  | `-dev`              |
-| `production`  | `com.example.saku_apps`      | `Saku`      | _(none)_            |
-
-The label is injected via the `${appName}` manifest placeholder in `AndroidManifest.xml`. Because the application IDs differ, both builds can coexist on the same Android device.
-
-### iOS (`ios/Runner.xcodeproj/xcshareddata/xcschemes/`)
-
-Two shared schemes are committed alongside the default one:
-
-- `development.xcscheme`
-- `production.xcscheme`
-
-Both currently reuse the existing `Debug` / `Profile` / `Release` build configurations and the default `Runner.app` target. On iOS, behavioural differences are driven entirely by `--dart-define=FLAVOR=...` and `FlavorConfig`. If you later want different bundle IDs / display names per flavor, add per-flavor `.xcconfig` overrides (e.g. `Flutter/Development.xcconfig`) in Xcode.
-
-### Running a flavor
-
-```bash
-# CLI
-flutter run -t lib/main_development.dart --flavor development --dart-define=FLAVOR=development
-flutter run -t lib/main_production.dart  --flavor production  --dart-define=FLAVOR=production --release
-
-# Make
-make run-dev
-make run-prod
-
-# VS Code
-# Pick "Saku · Development (debug|profile|release)" or
-#      "Saku · Production  (debug|profile|release)" from Run & Debug
-```
-
----
-
-## Build & run (Makefile)
-
-The repo ships a `Makefile` with the following targets:
-
-```bash
-make get               # flutter pub get
-make gen               # build_runner build (delete-conflicting-outputs)
-make watch             # build_runner watch
-
-make run-dev           # flutter run, dev flavor
-make run-prod          # flutter run --release, prod flavor
-
-make apk-dev           # debug APK from dev flavor
-make apk-prod          # release APK from prod flavor (--split-per-abi)
-make appbundle-prod    # release AAB for the Play Store
-
-make ios-dev           # iOS dev build (no codesign)
-make ios-prod          # iOS prod release build
-
-make analyze           # flutter analyze
-make format            # dart format .
-make test              # flutter test
-```
-
-Equivalent raw Flutter commands if you don't have `make`:
-
-```bash
-# APK — Development
-flutter build apk -t lib/main_development.dart --dart-define=FLAVOR=development --debug
-
-# APK — Production (split per ABI)
-flutter build apk -t lib/main_production.dart --dart-define=FLAVOR=production --release --split-per-abi
-
-# App Bundle — Production
-flutter build appbundle -t lib/main_production.dart --dart-define=FLAVOR=production --release
-```
+Entry points:
+- `lib/main_development.dart`
+- `lib/main_production.dart`
+- `lib/main.dart` (defaults to development)
 
 ---
 
 ## Code generation
 
-Whenever you change a `@freezed` class or a `@HiveType` model, regenerate sources:
+Run after changing any `@freezed` class or `@HiveType` model:
 
 ```bash
-make gen
+dart run build_runner build
 # or
-dart run build_runner build --delete-conflicting-outputs
+make gen
+```
+
+Generated files (do not edit manually):
+- `*.freezed.dart` — Freezed immutable classes
+- `*.g.dart` — Hive type adapters
+- `lib/hive_registrar.g.dart` — Central adapter registration
+
+---
+
+## Adding a new Hive model manually
+
+If you add a new `@HiveType` model, follow these steps:
+
+1. Create the model in `features/<feature>/data/models/`
+2. Assign a unique `typeId` (see table above — don't reuse existing IDs)
+3. Run `dart run build_runner build`
+4. Verify `lib/hive_registrar.g.dart` includes your adapter
+5. Open the box in `lib/main.dart`:
+
+```dart
+final myBox = await Hive.openBox<MyModel>('my_box_name$suffix');
+```
+
+6. Create a Riverpod provider and override it in `ProviderScope`:
+
+```dart
+final myBoxProvider = Provider<Box<MyModel>>((ref) {
+  throw UnimplementedError('Override in main.dart');
+});
+
+// In bootstrap():
+overrides: [
+  myBoxProvider.overrideWithValue(myBox),
+],
 ```
 
 ---
 
-## Currency formatting
+## Adding a new feature manually
 
-```dart
-formatRupiah(0);          // "Rp 0"
-formatRupiah(1250000);    // "Rp 1.250.000"
-formatRupiah(3251606);    // "Rp 3.251.606"
-formatRupiah(-1500);      // "-Rp 1.500"
+Follow this order (Clean Architecture):
+
 ```
+1. domain/entities/          → @freezed entity
+2. domain/repositories/      → abstract repository interface
+3. data/models/              → @HiveType model (if persisted)
+4. data/datasources/         → Hive CRUD + watch stream
+5. data/repositories/        → repository implementation
+6. domain/usecases/          → one class per operation
+7. presentation/providers/   → Riverpod wiring
+8. presentation/pages/       → screens
+9. presentation/widgets/     → reusable components
+10. app/router.dart          → GoRoute
+11. main.dart                → open Hive box + provider override
+12. core/constants/app_strings.dart → UI strings
+13. dart run build_runner build
+```
+
+---
+
+## User guide
+
+### Add a transaction
+1. Tap **+** FAB on Home (or bottom nav **Tambah**)
+2. Choose Pemasukan / Pengeluaran
+3. Enter amount via keypad, pick category, date, optional notes
+4. If multiple wallets exist, pick a wallet
+5. Tap **Simpan**
+
+### Transfer between wallets
+1. **Long-press** the **+** FAB on Home → choose **Transfer**
+   - Or tap **⇄** on Wallet Detail page
+2. Select **Dari** and **Ke** wallets (tap ⇄ to swap)
+3. Enter amount, date, optional notes
+4. Tap **Transfer Sekarang**
+5. View history: Wallet Detail → **Riwayat Transfer**, or History tab → **Transfer**
+
+### Manage wallets
+1. Tap wallet icon on Home AppBar → **Dompet**
+2. Tap **+** to add wallet (name, emoji icon, saldo awal)
+3. Long-press wallet → Edit / Set default / Delete (default wallet cannot be deleted)
+4. Tap wallet → see balance and transactions
+
+### Search transactions
+1. Tap search icon on Home or History AppBar
+2. Type category name, notes, or amount
+3. Results update in real-time (300ms debounce)
+
+### Settings
+- Theme: Sistem / Terang / Gelap
+- Daily reminder notification
+- Export CSV / Clear all data
 
 ---
 
 ## Assets
 
-Registered in `pubspec.yaml`:
-
 ```
-assets/app_icons/   # 1024×1024 master + per-platform sizes
-assets/icons/       # Custom SVG/PNG icons (Stitch-generated)
-assets/images/      # Illustrations / empty-state art
+assets/
+├── app_icons/       # App launcher icons (all platforms)
+├── fonts/           # Inter font family (bundled)
+├── icons/           # app_icon.png
+├── images/
+└── lottie/          # Splash animation (Loading.json)
 ```
 
-App icons are already generated in `assets/app_icons/` (Android, iPad, iPhone, App Store, Play Store sizes).
+Declared in `pubspec.yaml` under `flutter: assets:` and `fonts:`.
+
+---
+
+## Android notes
+
+- **NDK version** pinned to `27.0.12077973` in `android/app/build.gradle.kts`
+- **Core library desugaring** enabled for `flutter_local_notifications`
+- **Product flavors** on `env` dimension: `development`, `production`
 
 ---
 
 ## Quality gates
 
-This project keeps the following clean:
-
 ```bash
-flutter analyze   # 0 issues
-flutter test      # currency formatter unit tests
+flutter analyze    # Should pass with 0 errors
+flutter test       # Unit tests (currency formatter, etc.)
 ```
 
 ---
 
-## Changelog (project bootstrap)
+## Phase 2 roadmap
 
-**2026-05-23 — Initial scaffold**
+| Feature | Status |
+| ------- | ------ |
+| Multiple Wallets | ✅ Done |
+| Search Transaction | ✅ Done |
+| Transfer Between Wallets | ✅ Done |
+| Recurring Transaction | 🔲 Planned (typeId: 2) |
+| Budget Planner | 🔲 Planned (typeId: 3) |
 
-- Replaced default Flutter counter app with the full Saku architecture.
-- Added Clean-Architecture layered structure (`data` / `domain` / `presentation`) under `lib/features/transaction/`.
-- Wired Hive CE (`hive_ce` + `hive_ce_flutter` + `hive_ce_generator`) — chosen over `hive` because the original is incompatible with the current Dart analyzer.
-- Added Riverpod providers for the entire transaction feature, including a reactive `Hive.box.watch()`-backed stream.
-- Implemented Splash → Home → Add → History → Report flows with go_router `ShellRoute` and a black & white `NavigationBar`.
-- Added flavor system (`Flavor.development` / `Flavor.production`) with separate Hive box names to keep dev and prod data isolated.
-- Added `Makefile` with `apk-dev`, `apk-prod`, `appbundle-prod`, and per-flavor run/iOS targets.
-- Added `formatRupiah()` and accompanying unit tests.
+Rule files for each feature live in `.cursor/rules/`.
 
-**2026-05-23 — Editor + platform flavors**
+---
 
-- Added `.vscode/launch.json` (8 launch configs: dev/prod × debug/profile/release plus default-entry and tests), `.vscode/settings.json`, and `.vscode/tasks.json` for one-click pub-get / analyze / build_runner / APK / AAB tasks.
-- Wired real **Android product flavors** in `android/app/build.gradle.kts` (`development` → `com.example.saku_apps.dev` with label `Saku Dev`, `production` → `com.example.saku_apps` with label `Saku`). `AndroidManifest.xml` now uses an `${appName}` manifest placeholder.
-- Added matching **iOS Xcode schemes** (`development.xcscheme`, `production.xcscheme`) so `flutter run --flavor development|production` works on both platforms.
-- Updated `Makefile` and `.vscode/tasks.json` to pass `--flavor` to all Flutter run/build commands.
+## Changelog
 
-> *"Healthy finances start with organized records."* 🪙
+**2026-06-02 — Transfer Between Wallets**
+- Added `WalletTransfer` entity + Hive model (typeId: 4)
+- Transfer sheet, history page, History tab filter
+- FAB long-press speed dial (Add Transaction / Transfer)
+- Wallet balance formula updated to include transfers
+- Comprehensive README rewrite
+
+**2026-06-01 — Search + Wallets (Phase 2)**
+- Multiple wallets with computed balance
+- Search page with debounced full-text filter
+- Wallet chips on Home, wallet picker on Add Transaction
+- Default "Kas" wallet seeded on first launch
+
+**2026-05-23 — Phase 1 bootstrap**
+- Clean Architecture scaffold, Hive CE, Riverpod, go_router
+- Splash, Home, Add, History, Report, Settings
+- Flavor system (development / production)
+- Inter font bundled, HugeIcons, Lottie splash
+- Indonesian UI strings
+
+---
+
+> *"Keuangan sehat dimulai dari catatan yang rapi."* 🪙

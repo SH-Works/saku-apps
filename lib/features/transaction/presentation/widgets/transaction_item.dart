@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
-import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/categories.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_helper.dart';
