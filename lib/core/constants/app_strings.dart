@@ -110,6 +110,23 @@ class AppStrings {
       'Tambahkan dompet untuk mulai mengelola keuangan Anda';
   static const noTransactionsForWallet = 'Belum ada transaksi di dompet ini';
 
+  // Budget
+  static const budget = 'Budget';
+  static const setBudget = 'Atur Budget';
+  static const budgetLimit = 'Limit Budget';
+  static const budgetMonth = 'Bulan';
+  static const budgetEnterLimit = 'Masukkan limit lebih dari 0';
+  static const noBudgets = 'Belum ada budget untuk bulan ini';
+  static const budgetTotalLimit = 'Total Limit';
+  static const budgetTotalSpent = 'Terpakai';
+  static const budgetRemaining = 'Sisa';
+  static const budgetOverLimit = 'Melebihi budget';
+  static const budgetThisMonth = 'Bulan ini';
+  static const budgetAlertNearLimit = 'budget mendekati limit';
+  static const budgetAlertExceeded = 'budget melebihi limit';
+  static const budgetVsActual = 'Budget vs Aktual';
+  static const budgetSetLink = 'Atur budget untuk bulan ini →';
+
   // Transfer
   static const transfer = 'Transfer';
   static const transferAction = 'Transfer Sekarang';

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/budget/presentation/pages/add_budget_page.dart';
+import '../features/budget/presentation/pages/budget_page.dart';
 import '../features/search/presentation/pages/search_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/splash/presentation/pages/splash_page.dart';
@@ -26,6 +28,14 @@ final GoRouter appRouter = GoRouter(
       builder: (_, state) => TransferHistoryPage(
         walletId: state.uri.queryParameters['walletId'],
       ),
+    ),
+    GoRoute(
+      path: '/budget',
+      builder: (_, __) => const BudgetPage(),
+    ),
+    GoRoute(
+      path: '/budget/add',
+      builder: (_, __) => const AddBudgetPage(),
     ),
     GoRoute(
       path: '/search',

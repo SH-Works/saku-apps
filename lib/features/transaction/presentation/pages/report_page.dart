@@ -1,12 +1,15 @@
 // ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/categories.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../features/budget/domain/entities/budget.dart';
+import '../../../../features/budget/presentation/providers/budget_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../widgets/month_selector.dart';
 import '../widgets/monthly_chart.dart';
@@ -18,6 +21,8 @@ class ReportPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selected = ref.watch(selectedMonthProvider);
     final summary = ref.watch(monthSummaryProvider);
+    final budgetKey = (year: selected.year, month: selected.month);
+    final budgetProgressAsync = ref.watch(budgetProgressProvider(budgetKey));
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final fg = isDark ? AppColors.white : AppColors.black;
 
@@ -81,6 +86,46 @@ class ReportPage extends ConsumerWidget {
               dailyExpense: summary.dailyExpense,
               month: selected,
             ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            AppStrings.budgetVsActual,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          budgetProgressAsync.when(
+            data: (progressList) {
+              if (progressList.isEmpty) {
+                return InkWell(
+                  onTap: () => context.push('/budget'),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: Text(
+                        AppStrings.budgetSetLink,
+                        style: TextStyle(
+                          color: fg,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return Column(
+                children: [
+                  for (final progress in progressList)
+                    _BudgetVsActualRow(progress: progress, fg: fg),
+                ],
+              );
+            },
+            loading: () => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, _) => Text('${AppStrings.errorPrefix}: $e'),
           ),
           const SizedBox(height: 24),
           Text(
@@ -167,6 +212,63 @@ class ReportPage extends ConsumerWidget {
           .read(deleteAllTransactionsUseCaseProvider)
           .call();
     }
+  }
+}
+
+class _BudgetVsActualRow extends StatelessWidget {
+  final BudgetProgress progress;
+  final Color fg;
+
+  const _BudgetVsActualRow({required this.progress, required this.fg});
+
+  @override
+  Widget build(BuildContext context) {
+    final cat = categoryById(progress.budget.categoryId);
+    final spentRatio = progress.budget.limitAmount <= 0
+        ? 0.0
+        : (progress.spentAmount / progress.budget.limitAmount).clamp(0.0, 1.0);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              HugeIcon(icon: cat.icon, color: fg, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  cat.label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                '${formatRupiah(progress.spentAmount)} / ${formatRupiah(progress.budget.limitAmount)}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: spentRatio,
+              minHeight: 8,
+              backgroundColor: AppColors.lightSurface,
+              valueColor: AlwaysStoppedAnimation<Color>(fg),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

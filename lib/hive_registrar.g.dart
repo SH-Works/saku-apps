@@ -3,12 +3,14 @@
 // Check in to version control
 
 import 'package:hive_ce/hive.dart';
+import 'package:saku_apps/features/budget/data/models/budget_model.dart';
 import 'package:saku_apps/features/transaction/data/models/transaction_model.dart';
 import 'package:saku_apps/features/transfer/data/models/wallet_transfer_model.dart';
 import 'package:saku_apps/features/wallets/data/models/wallet_model.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
+    registerAdapter(BudgetModelAdapter());
     registerAdapter(TransactionModelAdapter());
     registerAdapter(WalletModelAdapter());
     registerAdapter(WalletTransferModelAdapter());
@@ -17,6 +19,7 @@ extension HiveRegistrar on HiveInterface {
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
+    registerAdapter(BudgetModelAdapter());
     registerAdapter(TransactionModelAdapter());
     registerAdapter(WalletModelAdapter());
     registerAdapter(WalletTransferModelAdapter());

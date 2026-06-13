@@ -63,4 +63,30 @@ class NotificationService {
   static Future<void> cancelAll() async {
     await _plugin.cancelAll();
   }
+
+  static const _budgetChannelId = 'saku_budget_alerts';
+  static const _budgetChannelName = 'Peringatan Budget';
+  static const _budgetChannelDesc = 'Notifikasi saat budget hampir atau melebihi limit';
+
+  static Future<void> showBudgetAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await _plugin.show(
+      id,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _budgetChannelId,
+          _budgetChannelName,
+          channelDescription: _budgetChannelDesc,
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
+  }
 }
