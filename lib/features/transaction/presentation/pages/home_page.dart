@@ -6,6 +6,8 @@ import 'package:hugeicons/hugeicons.dart';
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../features/budget/presentation/providers/budget_provider.dart';
+import '../../../../features/budget/presentation/widgets/budget_alert_banner.dart';
 import '../../../../features/transfer/presentation/widgets/transfer_sheet.dart';
 import '../../../../features/wallets/domain/entities/wallet.dart';
 import '../../../../features/wallets/presentation/providers/wallet_provider.dart';
@@ -67,6 +69,9 @@ class HomePage extends ConsumerWidget {
       orElse: () => <Wallet>[],
     );
 
+    final budgetProgressAsync = ref.watch(currentMonthBudgetProgressProvider);
+    final bannerDismissed = ref.watch(budgetAlertDismissedProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.appName),
@@ -107,6 +112,59 @@ class HomePage extends ConsumerWidget {
               balance: summary.balance,
               income: summary.income,
               expense: summary.expense,
+            ),
+            const SizedBox(height: 12),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: budgetProgressAsync.when(
+                data: (list) {
+                  final warnings =
+                      list.where((p) => p.isWarning).toList();
+                  if (warnings.isEmpty || bannerDismissed) {
+                    return const SizedBox.shrink(key: ValueKey('no-banner'));
+                  }
+                  return Padding(
+                    key: const ValueKey('banner'),
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: BudgetAlertBanner(
+                      warnings: warnings,
+                      onTap: () => context.push('/budget'),
+                      onDismiss: () => ref
+                          .read(budgetAlertDismissedProvider.notifier)
+                          .state = true,
+                    ),
+                  );
+                },
+                loading: () => const SizedBox.shrink(key: ValueKey('loading')),
+                error: (_, __) =>
+                    const SizedBox.shrink(key: ValueKey('error')),
+              ),
+            ),
+            budgetProgressAsync.when(
+              data: (list) {
+                if (list.isEmpty) return const SizedBox.shrink();
+                final totalLimit = list.fold<int>(
+                  0,
+                  (s, p) => s + p.budget.limitAmount,
+                );
+                final totalSpent = list.fold<int>(
+                  0,
+                  (s, p) => s + p.spentAmount,
+                );
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    '${AppStrings.budgetThisMonth}: ${formatRupiah(totalSpent)} / ${formatRupiah(totalLimit)}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
             ),
             // Wallet chips — only show when there are multiple wallets
             if (wallets.length > 0) ...[

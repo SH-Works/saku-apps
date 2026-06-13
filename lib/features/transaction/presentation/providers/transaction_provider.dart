@@ -3,6 +3,8 @@ import 'package:hive_ce/hive.dart';
 
 import '../../../../core/constants/categories.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../features/budget/presentation/providers/budget_provider.dart';
+import '../../../../features/settings/presentation/providers/settings_provider.dart';
 import '../../data/datasources/transaction_local_datasource.dart';
 import '../../data/models/transaction_model.dart';
 import '../../data/repositories/transaction_repository_impl.dart';
@@ -38,7 +40,11 @@ final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
 // ---- Use cases ----
 
 final addTransactionUseCaseProvider = Provider<AddTransaction>((ref) {
-  return AddTransaction(ref.watch(transactionRepositoryProvider));
+  return AddTransaction(
+    ref.watch(transactionRepositoryProvider),
+    budgetRepository: ref.watch(budgetRepositoryProvider),
+    settingsBox: ref.watch(settingsBoxProvider),
+  );
 });
 
 final deleteTransactionUseCaseProvider = Provider<DeleteTransaction>((ref) {
