@@ -145,6 +145,28 @@ class AppStrings {
   static const noTransfers = 'Belum ada transfer';
   static const transferTab = 'Transfer';
 
+  // Recurring
+  static const recuring = 'Transaksi Berulang';
+  static const recuringAdd = 'Tambah Berulang';
+  static const recuringLabel = 'Label';
+  static const recuringLabelHint = 'cth. Netflix, Gaji Bulanan';
+  static const recuringLabelRequired = 'Label tidak boleh kosong';
+  static const recuringFrequency = 'Frekuensi';
+  static const recuringDaily = 'Harian';
+  static const recuringWeekly = 'Mingguan';
+  static const recuringMonthly = 'Bulanan';
+  static const recuringYearly = 'Tahunan';
+  static const recuringDayOfMonth = 'Tanggal (1–28)';
+  static const recuringStartDate = 'Tanggal Mulai';
+  static const recuringEndDate = 'Tanggal Berakhir';
+  static const recuringHasEndDate = 'Aktifkan tanggal berakhir';
+  static const recuringNextDue = 'Jatuh tempo berikutnya';
+  static const recuringActive = 'Aktif';
+  static const recuringInactive = 'Nonaktif';
+  static const recuringEmpty = 'Belum ada transaksi berulang';
+  static const recuringDeleteTitle = 'Hapus transaksi berulang?';
+  static const sectionTools = 'Alat';
+
   // Error
   static const errorPrefix = 'Terjadi kesalahan';
   static const failedToSave = 'Gagal menyimpan';

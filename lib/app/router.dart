@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/recuring/presentation/pages/add_recurring_page.dart';
+import '../features/recuring/presentation/pages/recuring_page.dart';
 import '../features/budget/presentation/pages/add_budget_page.dart';
 import '../features/budget/presentation/pages/budget_page.dart';
 import '../features/search/presentation/pages/search_page.dart';
@@ -36,6 +38,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/budget/add',
       builder: (_, __) => const AddBudgetPage(),
+    ),
+    GoRoute(
+      path: '/recuring',
+      builder: (_, __) => const RecuringPage(),
+    ),
+    GoRoute(
+      path: '/recuring/add',
+      builder: (_, __) => const AddRecurringPage(),
     ),
     GoRoute(
       path: '/search',

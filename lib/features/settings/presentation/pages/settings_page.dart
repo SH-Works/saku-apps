@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -110,6 +111,24 @@ class SettingsPage extends ConsumerWidget {
                   },
                 ),
               ],
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // ─── Alat ──────────────────────────────────────────────
+          const _SectionHeader(label: AppStrings.sectionTools),
+          _Section(
+            children: [
+              _SettingsTile(
+                title: AppStrings.recuring,
+                trailing: const HugeIcon(
+                  icon: HugeIcons.strokeRoundedRepeat,
+                  size: 18,
+                  color: AppColors.secondary,
+                ),
+                onTap: () => context.push('/recuring'),
+              ),
             ],
           ),
 
