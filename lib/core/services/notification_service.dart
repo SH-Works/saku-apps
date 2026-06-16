@@ -89,4 +89,31 @@ class NotificationService {
       ),
     );
   }
+
+  static const _smokeChannelId = 'saku_smoke_alerts';
+  static const _smokeChannelName = 'Peringatan Rokok';
+  static const _smokeChannelDesc =
+      'Notifikasi saat limit rokok harian hampir atau tercapai';
+
+  static Future<void> showSmokeAlert({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    await _plugin.show(
+      id,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _smokeChannelId,
+          _smokeChannelName,
+          channelDescription: _smokeChannelDesc,
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+      ),
+    );
+  }
 }

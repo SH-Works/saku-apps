@@ -167,6 +167,45 @@ class AppStrings {
   static const recuringDeleteTitle = 'Hapus transaksi berulang?';
   static const sectionTools = 'Alat';
 
+  // Smoke Tracker
+  static const smokeTracker = 'Smoke Tracker';
+  static const smokeTrackerSubtitleOff = 'Aktifkan untuk melacak rokok';
+  static const smokeTrackerSubtitleOn = 'Ketuk untuk buka tracker';
+  static const smokeCigarettesToday = 'batang hari ini';
+  static const smokeDailyLimit = 'limit harian';
+  static const smokeOverLimit = 'Melebihi limit';
+  static const smokeTodayTimeline = 'Timeline Hari Ini';
+  static const smokeEmptyToday = 'Belum ada rokok hari ini 👍';
+  static const smokeThisWeek = 'Minggu Ini';
+  static const smokeStatistics = 'Statistik';
+  static const smokeSettings = 'Pengaturan Rokok';
+  static const smokeMyCigarette = 'Rokok Saya';
+  static const smokePerPack = 'Batang per bungkus';
+  static const smokePricePerPack = 'Harga per bungkus';
+  static const smokePricePerCigarette = 'Harga per batang';
+  static const smokeDailyLimitLabel = 'Limit harian';
+  static const smokeNotify80 = 'Notifikasi di 80%';
+  static const smokeNotifyLimit = 'Notifikasi saat limit';
+  static const smokeFinanceIntegration = 'Integrasi Keuangan';
+  static const smokeAutoLogExpense = 'Catat otomatis sebagai pengeluaran';
+  static const smokeExpenseInfo = 'Pengeluaran dicatat per bungkus penuh';
+  static const smokeSaveSettings = 'Simpan Pengaturan';
+  static const smokeTotalThisMonth = 'Total bulan ini';
+  static const smokeAvgPerDay = 'Rata-rata/hari';
+  static const smokeTotalCost = 'Total biaya';
+  static const smokeDaysOverLimit = 'Hari melebihi limit';
+  static const smokeWorstDays = 'Hari Terburuk';
+  static const smokeComparison = 'Perbandingan';
+  static const smokePacksConsumed = 'Bungkus';
+  static const smokeDeleteLast = 'Hapus log terakhir?';
+  static const smokeDeleteLog = 'Hapus log ini?';
+  static const smokeOnboardingStep1 = 'Atur Rokok Anda';
+  static const smokeOnboardingStep2 = 'Atur Limit Harian';
+  static const smokeStartTracking = 'Mulai Lacak';
+  static const smokeSkipForNow = 'Lewati dulu';
+  static const smokeNext = 'Lanjut';
+  static const smokeTodayCost = 'hari ini';
+
   // Error
   static const errorPrefix = 'Terjadi kesalahan';
   static const failedToSave = 'Gagal menyimpan';
