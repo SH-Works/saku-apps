@@ -11,6 +11,11 @@ import 'features/budget/data/models/budget_model.dart';
 import 'features/budget/presentation/providers/budget_provider.dart';
 import 'features/recuring/data/datasources/recuring_local_datasource.dart';
 import 'features/recuring/data/models/recuring_model.dart';
+import 'features/smoke_tracker/data/datasources/smoke_log_datasource.dart';
+import 'features/smoke_tracker/data/datasources/smoke_settings_datasource.dart';
+import 'features/smoke_tracker/data/models/smoke_log_model.dart';
+import 'features/smoke_tracker/data/models/smoke_settings_model.dart';
+import 'features/smoke_tracker/presentation/providers/smoke_provider.dart';
 import 'features/recuring/presentation/providers/recuring_provider.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
 import 'features/transaction/data/datasources/transaction_local_datasource.dart';
@@ -58,6 +63,13 @@ Future<void> bootstrap(Flavor flavor) async {
   final recuringBoxName = '${RecuringLocalDataSource.boxName}$suffix';
   final recuringBox = await Hive.openBox<RecuringModel>(recuringBoxName);
 
+  final smokeLogBoxName = '${SmokeLogDataSource.boxName}$suffix';
+  final smokeLogBox = await Hive.openBox<SmokeLogModel>(smokeLogBoxName);
+
+  final smokeSettingsBoxName = '${SmokeSettingsDataSource.boxName}$suffix';
+  final smokeSettingsBox =
+      await Hive.openBox<SmokeSettingsModel>(smokeSettingsBoxName);
+
   final settingsBox = await Hive.openBox('settings$suffix');
 
   // Seed the default "Kas" wallet on first launch.
@@ -74,6 +86,8 @@ Future<void> bootstrap(Flavor flavor) async {
         transferBoxProvider.overrideWithValue(transferBox),
         budgetBoxProvider.overrideWithValue(budgetBox),
         recuringBoxProvider.overrideWithValue(recuringBox),
+        smokeLogBoxProvider.overrideWithValue(smokeLogBox),
+        smokeSettingsBoxProvider.overrideWithValue(smokeSettingsBox),
         settingsBoxProvider.overrideWithValue(settingsBox),
       ],
       child: const SakuApp(),

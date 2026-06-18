@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/recuring/presentation/pages/add_recurring_page.dart';
-import '../features/recuring/presentation/pages/recuring_page.dart';
 import '../features/budget/presentation/pages/add_budget_page.dart';
 import '../features/budget/presentation/pages/budget_page.dart';
+import '../features/recuring/presentation/pages/add_recurring_page.dart';
+import '../features/recuring/presentation/pages/recuring_page.dart';
 import '../features/search/presentation/pages/search_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
+import '../features/smoke_tracker/presentation/pages/smoke_settings_page.dart';
+import '../features/smoke_tracker/presentation/pages/smoke_statistics_page.dart';
+import '../features/smoke_tracker/presentation/pages/smoke_tracker_page.dart';
+import '../features/smoke_tracker/presentation/providers/smoke_provider.dart';
 import '../features/splash/presentation/pages/splash_page.dart';
 import '../features/transfer/presentation/pages/transfer_history_page.dart';
 import '../features/transaction/presentation/pages/history_page.dart';
@@ -17,6 +22,16 @@ import '../features/wallets/presentation/pages/wallets_page.dart';
 import 'main_shell.dart';
 
 // ignore_for_file: unnecessary_underscores
+
+String? _smokeRouteGuard(BuildContext context) {
+  try {
+    final container = ProviderScope.containerOf(context);
+    final enabled = container.read(smokeTrackerEnabledProvider);
+    return enabled ? null : '/home';
+  } catch (_) {
+    return '/home';
+  }
+}
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -46,6 +61,21 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/recuring/add',
       builder: (_, __) => const AddRecurringPage(),
+    ),
+    GoRoute(
+      path: '/smoke',
+      redirect: (context, state) => _smokeRouteGuard(context),
+      builder: (_, __) => const SmokeTrackerPage(),
+    ),
+    GoRoute(
+      path: '/smoke/stats',
+      redirect: (context, state) => _smokeRouteGuard(context),
+      builder: (_, __) => const SmokeStatisticsPage(),
+    ),
+    GoRoute(
+      path: '/smoke/settings',
+      redirect: (context, state) => _smokeRouteGuard(context),
+      builder: (_, __) => const SmokeSettingsPage(),
     ),
     GoRoute(
       path: '/search',
@@ -84,8 +114,6 @@ final GoRouter appRouter = GoRouter(
             ),
           ),
         ),
-        // /add is handled as a modal sheet from MainShell, but we still
-        // register the route so deep-links don't 404.
         GoRoute(
           path: '/add',
           pageBuilder: (_, __) => const NoTransitionPage(child: HomePage()),
