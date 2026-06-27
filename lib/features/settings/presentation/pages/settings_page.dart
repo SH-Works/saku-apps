@@ -9,6 +9,8 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../app/theme.dart';
 import '../../../../core/constants/app_strings.dart';
+import '../../../smoke_tracker/presentation/pages/smoke_onboarding_sheet.dart';
+import '../../../smoke_tracker/presentation/providers/smoke_provider.dart';
 import '../../../transaction/domain/entities/transaction.dart';
 import '../../../transaction/presentation/providers/transaction_provider.dart';
 import '../providers/settings_provider.dart';
@@ -128,6 +130,77 @@ class SettingsPage extends ConsumerWidget {
                   color: AppColors.secondary,
                 ),
                 onTap: () => context.push('/recuring'),
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 0),
+              Consumer(
+                builder: (context, ref, _) {
+                  final isEnabled = ref.watch(smokeTrackerEnabledProvider);
+                  return _SettingsTile(
+                    title: AppStrings.smokeTracker,
+                    bottom: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        isEnabled
+                            ? AppStrings.smokeTrackerSubtitleOn
+                            : AppStrings.smokeTrackerSubtitleOff,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.secondary,
+                        ),
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Switch.adaptive(
+                          value: isEnabled,
+                          activeColor: AppColors.black,
+                          onChanged: (val) async {
+                            if (val) {
+                              final settings = ref
+                                  .read(smokeRepositoryProvider)
+                                  .getSettings();
+                              if (settings == null ||
+                                  settings.cigarettesPerPack == 0) {
+                                await showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  useSafeArea: true,
+                                  backgroundColor:
+                                      Theme.of(context).scaffoldBackgroundColor,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(24),
+                                    ),
+                                  ),
+                                  builder: (_) => const SmokeOnboardingSheet(),
+                                );
+                              } else {
+                                await ref
+                                    .read(toggleSmokeTrackerProvider)
+                                    .call(true);
+                              }
+                            } else {
+                              await ref
+                                  .read(toggleSmokeTrackerProvider)
+                                  .call(false);
+                            }
+                            ref.invalidate(smokeSettingsProvider);
+                          },
+                        ),
+                        if (isEnabled) ...[
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.chevron_right,
+                            color: AppColors.secondary,
+                            size: 20,
+                          ),
+                        ],
+                      ],
+                    ),
+                    onTap: isEnabled ? () => context.push('/smoke') : null,
+                  );
+                },
               ),
             ],
           ),
