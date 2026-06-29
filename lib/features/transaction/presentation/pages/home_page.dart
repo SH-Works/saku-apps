@@ -8,6 +8,8 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../features/budget/presentation/providers/budget_provider.dart';
 import '../../../../features/budget/presentation/widgets/budget_alert_banner.dart';
+import '../../../../features/smoke_tracker/presentation/providers/smoke_provider.dart';
+import '../../../../features/smoke_tracker/presentation/widgets/smoke_quick_card.dart';
 import '../../../../features/transfer/presentation/widgets/transfer_sheet.dart';
 import '../../../../features/wallets/domain/entities/wallet.dart';
 import '../../../../features/wallets/presentation/providers/wallet_provider.dart';
@@ -226,6 +228,13 @@ class HomePage extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 40),
                 child: Center(child: Text('${AppStrings.errorPrefix}: $e')),
               ),
+            ),
+            Consumer(
+              builder: (context, ref, _) {
+                final isEnabled = ref.watch(smokeTrackerEnabledProvider);
+                if (!isEnabled) return const SizedBox.shrink();
+                return const SmokeQuickCard();
+              },
             ),
           ],
         ),
